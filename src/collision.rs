@@ -1,4 +1,4 @@
-use crate::collision_geometry::{get_angle, Circles, ORIENTATION};
+use crate::collision_geometry::{get_angle, Circle, ORIENTATION};
 use crate::entity::{Entities, EntityState};
 use crate::physics;
 use crate::scene;
@@ -21,15 +21,10 @@ pub fn pair_wise_comparison(now: &mut Entities) {
             // (ASSUME ON CURRENT TIME-STEP AS INTERSECTION HAS ALREADY HAPPENED)
 
             // We're within each other's hit radii, but how should we characterize the collision?
-            if Circles::intersecting(
-                &now[i].pos,
-                &now[j].pos,
-                &now[i].hit_radius,
-                &now[j].hit_radius,
-            ) {
-                now[i].state = EntityState::Dead;
-                now[j].state = EntityState::Dead;
+            let my_hitbox = Circle::new(&now[i].pos, &now[i].hit_radius);
+            let thy_hitbox = Circle::new(&now[j].pos, &now[j].hit_radius);
 
+            if my_hitbox.intersects(&thy_hitbox) {
                 // where is the other entity relative to us?
                 let direction_of_target: ORIENTATION;
                 if let Some(val) = ORIENTATION::from_angle(&get_angle(&now[i].pos, &now[j].pos)) {
@@ -45,12 +40,7 @@ pub fn pair_wise_comparison(now: &mut Entities) {
                 }
 
                 // we're clipping the target, so let's adjust our position...
-                let overlap = Circles::intersect_length(
-                    &now[i].pos,
-                    &now[j].pos,
-                    &now[i].hit_radius,
-                    &now[j].hit_radius,
-                );
+                let overlap = my_hitbox.overlap_length(&thy_hitbox);
                 let repulsion = 10000.0_f32.powf(overlap);
                 match direction_of_target {
                     ORIENTATION::East => {
@@ -122,8 +112,6 @@ pub fn pair_wise_comparison(now: &mut Entities) {
                         }
                     }
                 }
-            } else {
-                now[i].state = EntityState::Alive;
             }
         }
     }

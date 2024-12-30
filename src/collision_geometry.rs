@@ -75,10 +75,16 @@ pub struct Circle<'a> {
 }
 
 impl Circle<'_> {
+
+    /// creates a new circle using references to data owned by caller.
+    pub fn new<'a>(centroid: &'a (f32, f32), radius: &'a f32) -> Circle<'a> {
+        Circle { centroid, radius }
+    }
+
     /// returns true if the two circles described by the input parameters are intersecting.
     // in other words: is the separation distance between their centroids,
     // along both x and y axes, less than the sum of their radii?
-    pub fn intersecting(&self, other: &Circle) -> bool {
+    pub fn intersects(&self, other: &Circle) -> bool {
         let dx = (self.centroid.0 - other.centroid.0).abs();
         let dy = (self.centroid.1 - other.centroid.1).abs();
         let r = self.radius + other.radius;
@@ -89,8 +95,8 @@ impl Circle<'_> {
     /// returns length of the overlap between two circles.
     /// the greatest possible value is the radius of the smaller circle,
     /// the smallest possible value is 0.0 if the circles are not intersecting
-    pub fn intersect_length(&self, other: &Circle) -> f32 {
-        if !self.intersecting(other) {
+    pub fn overlap_length(&self, other: &Circle) -> f32 {
+        if !self.intersects(other) {
             return 0.0;
         }
         let dx_pow2 = (self.centroid.0 - other.centroid.0).powi(2);
@@ -116,8 +122,8 @@ pub struct Rectangle<'a> {
 
 impl Rectangle<'_> {
     /// determine whether two rectangles are intersecting.
-    pub fn intersecting(&self, other: &Rectangle) -> bool {
-        let (dx, dy) = self.intersect(&other);
+    pub fn intersects(&self, other: &Rectangle) -> bool {
+        let (dx, dy) = self.overlap_size(&other);
 
         if dx == 0.0 || dy == 0.0 {
             return false;
@@ -128,7 +134,7 @@ impl Rectangle<'_> {
 
     /// returns the (length, width) of the Rectangle that would be formed
     /// from the overlapping area between this Rectangle and some other Rectangle.
-    pub fn intersect(&self, other: &Rectangle) -> (f32, f32) {
+    pub fn overlap_size(&self, other: &Rectangle) -> (f32, f32) {
         let dx = (self.centroid.0 - other.centroid.0).abs();
         let dy = (self.centroid.1 - other.centroid.1).abs();
 
