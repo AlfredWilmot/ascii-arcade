@@ -121,6 +121,12 @@ pub struct Rectangle<'a> {
 }
 
 impl Rectangle<'_> {
+
+    /// creates a new circle using references to data owned by caller.
+    pub fn new<'a>(centroid: &'a (f32, f32), apothems: &'a (f32, f32)) -> Rectangle<'a> {
+        Rectangle { centroid, apothems }
+    }
+
     /// determine whether two rectangles are intersecting.
     pub fn intersects(&self, other: &Rectangle) -> bool {
         let (dx, dy) = self.overlap_size(&other);
