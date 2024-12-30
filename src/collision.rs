@@ -101,14 +101,16 @@ pub fn pair_wise_comparison(now: &mut Entities) {
                             now[i].vel.0 = my_vel.0;
                             now[j].vel.0 = thy_vel.0;
                         }
-                        ORIENTATION::North
-                        | ORIENTATION::South
-                        | ORIENTATION::NorthEast
+                        ORIENTATION::North | ORIENTATION::South => {
+                            now[i].vel.1 = my_vel.1;
+                            now[j].vel.1 = thy_vel.1;
+                        }
+                        ORIENTATION::NorthEast
                         | ORIENTATION::NorthWest
                         | ORIENTATION::SouthEast
                         | ORIENTATION::SouthWest => {
-                            now[i].vel.1 = my_vel.1;
-                            now[j].vel.1 = thy_vel.1;
+                            now[i].vel = my_vel;
+                            now[j].vel = thy_vel;
                         }
                     }
                 }
