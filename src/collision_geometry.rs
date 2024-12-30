@@ -69,12 +69,12 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> f32 {
 // --------------- INTERSECTION TESTS FOR DIFFERENT SHAPES ------------------ //
 // -------------------------------------------------------------------------- //
 
-pub struct Circle {
-    centroid: (f32, f32),
-    radius: f32,
+pub struct Circle<'a> {
+    centroid: &'a (f32, f32),
+    radius: &'a f32,
 }
 
-impl Circle {
+impl Circle<'_> {
     /// returns true if the two circles described by the input parameters are intersecting.
     // in other words: is the separation distance between their centroids,
     // along both x and y axes, less than the sum of their radii?
@@ -100,21 +100,21 @@ impl Circle {
     }
 }
 
-pub struct Rectangle {
+pub struct Rectangle<'a> {
     /// A point that is at the rectangle's geometric center.
     /// The distance between this point and the left/right sides are identical,
     /// and the distance between this point and the top/bottom sides are identical.
     /// (See http://enwp.org/centroid)
-    centroid: (f32, f32),
+    centroid: &'a (f32, f32),
 
     /// The Shortest distance from the centroid to the sides of the rectangle.
     /// The first entry is the distance to the sides orthogonal to the x-axis,
     /// and the second entry is the distance to the sides orthogonal to the y-axis.
     /// (See http://enwp.org/apothem)
-    apothems: (f32, f32),
+    apothems: &'a (f32, f32),
 }
 
-impl Rectangle {
+impl Rectangle<'_> {
     /// determine whether two rectangles are intersecting.
     pub fn intersecting(&self, other: &Rectangle) -> bool {
         let (dx, dy) = self.intersect(&other);
