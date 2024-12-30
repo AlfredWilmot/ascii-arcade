@@ -69,18 +69,19 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> f32 {
 // --------------- INTERSECTION TESTS FOR DIFFERENT SHAPES ------------------ //
 // -------------------------------------------------------------------------- //
 
-pub struct Circles;
-pub struct Rectangles;
+pub struct Circle {
+    centroid: (f32, f32),
+    radius: f32,
+}
 
-impl Circles {
-
+impl Circle {
     /// returns true if the two circles described by the input parameters are intersecting.
     // in other words: is the separation distance between their centroids,
     // along both x and y axes, less than the sum of their radii?
-    pub fn intersecting(a: &(f32, f32), b: &(f32, f32), rad_a: &f32, rad_b: &f32) -> bool {
-        let dx = (a.0 - b.0).abs();
-        let dy = (a.1 - b.1).abs();
-        let r = rad_a + rad_b;
+    pub fn intersecting(&self, other: &Circle) -> bool {
+        let dx = (self.centroid.0 - other.centroid.0).abs();
+        let dy = (self.centroid.1 - other.centroid.1).abs();
+        let r = self.radius + other.radius;
 
         return dx <= r && dy <= r;
     }
@@ -88,13 +89,56 @@ impl Circles {
     /// returns length of the overlap between two circles.
     /// the greatest possible value is the radius of the smaller circle,
     /// the smallest possible value is 0.0 if the circles are not intersecting
-    pub fn intersect_length(a: &(f32, f32), b: &(f32, f32), rad_a: &f32, rad_b: &f32) -> f32 {
-        if Circles::intersecting(a, b, rad_a, rad_b) {
+    pub fn intersect_length(&self, other: &Circle) -> f32 {
+        if !self.intersecting(other) {
             return 0.0;
         }
-        let dx_pow2 = (a.0 - b.0).powi(2);
-        let dy_pow2 = (a.1 - b.1).powi(2);
+        let dx_pow2 = (self.centroid.0 - other.centroid.0).powi(2);
+        let dy_pow2 = (self.centroid.1 - self.centroid.1).powi(2);
         let centroid_separation_distance = (dx_pow2 + dy_pow2).sqrt();
-        return rad_a + rad_b - centroid_separation_distance;
+        return self.radius + other.radius - centroid_separation_distance;
+    }
+}
+
+pub struct Rectangle {
+    /// A point that is at the rectangle's geometric center.
+    /// The distance between this point and the left/right sides are identical,
+    /// and the distance between this point and the top/bottom sides are identical.
+    /// (See http://enwp.org/centroid)
+    centroid: (f32, f32),
+
+    /// The Shortest distance from the centroid to the sides of the rectangle.
+    /// The first entry is the distance to the sides orthogonal to the x-axis,
+    /// and the second entry is the distance to the sides orthogonal to the y-axis.
+    /// (See http://enwp.org/apothem)
+    apothems: (f32, f32),
+}
+
+impl Rectangle {
+    /// determine whether two rectangles are intersecting.
+    pub fn intersecting(&self, other: &Rectangle) -> bool {
+        let (dx, dy) = self.intersect(&other);
+
+        if dx == 0.0 || dy == 0.0 {
+            return false;
+        }
+
+        return true;
+    }
+
+    /// returns the (length, width) of the Rectangle that would be formed
+    /// from the overlapping area between this Rectangle and some other Rectangle.
+    pub fn intersect(&self, other: &Rectangle) -> (f32, f32) {
+        let dx = (self.centroid.0 - other.centroid.0).abs();
+        let dy = (self.centroid.1 - other.centroid.1).abs();
+
+        let x_overlap = self.apothems.0 + other.apothems.0 - dx;
+        let y_overlap = self.apothems.1 + other.apothems.1 - dy;
+
+        if x_overlap <= 0.0 || y_overlap <= 0.0 {
+            return (0.0, 0.0);
+        }
+
+        return (x_overlap, y_overlap);
     }
 }
