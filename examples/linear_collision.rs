@@ -1,4 +1,4 @@
-use ascii_arcade::collision::pair_wise_comparison;
+use ascii_arcade::collision;
 use ascii_arcade::entity::{Entities, Entity, EntityType};
 use ascii_arcade::physics;
 use ascii_arcade::scene;
@@ -25,7 +25,7 @@ fn main() {
     // player to be controlled by user
     let mut player: Entity = Entity::default();
     player.id = EntityType::Player;
-    player.mass= 1.0;
+    player.mass = 1.0;
     entities_now.push(player);
 
     // copies of this entity are created when LMB is pressed
@@ -64,14 +64,13 @@ fn main() {
             }
         }
 
-
         // apply global acceleration rules
         for entity in entities_now.iter_mut() {
             entity.acc = (0.0, 9.81);
         }
 
         // update rules based on collision state
-        pair_wise_comparison(&mut entities_now);
+        collision::resolve(&mut entities_now);
 
         // resolve physics calculations
         for entity in entities_now.iter_mut() {
