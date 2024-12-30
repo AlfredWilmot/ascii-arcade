@@ -1,5 +1,5 @@
 use crate::collision_geometry::{get_angle, Circle, ORIENTATION};
-use crate::entity::{Entities, EntityState};
+use crate::entity::Entities;
 use crate::physics;
 use crate::scene;
 
@@ -41,7 +41,7 @@ pub fn pair_wise_comparison(now: &mut Entities) {
 
                 // we're clipping the target, so let's adjust our position...
                 let overlap = my_hitbox.overlap_length(&thy_hitbox);
-                let repulsion = 10000.0_f32.powf(overlap);
+                let repulsion = 100.0_f32.powf(overlap);
                 match direction_of_target {
                     ORIENTATION::East => {
                         now[i].acc = (-repulsion, now[i].acc.1);
