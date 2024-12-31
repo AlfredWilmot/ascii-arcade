@@ -47,22 +47,146 @@ impl ORIENTATION {
     }
 }
 
-/// returns the angle of the line connecting point a to point b
-pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> f32 {
+/// returns Some(angle) of the line connecting point 'a' to point 'b' in the xy plane.
+/// returns None if the points are the same.
+/// e.g.
+///   * --------------> (+x)
+///   |
+///   |   (ax, ay)
+///   |   x
+///   |
+///   |              x
+///   |               (bx, by)
+///   v
+///  (+y)
+///
+pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
     let (xa, ya) = a;
     let (xb, yb) = b;
-    let dy = -yb + ya;
-    let dx = xb - xa; // reflecting about the x-axis (+y is down, -y is up)
 
-    // convert to degreess
-    let result = (dy / dx).atan() * 180.0 / f32::consts::PI;
+    // ensure the deltas are only the absolute differences
+    let dy = (ya.abs() - yb.abs()).abs();
+    let dx = (xa.abs() - xb.abs()).abs();
 
-    if dx < 0.0 {
-        return result + 180.0;
-    } else if dx >= 0.0 && dy < 0.0 {
-        return result + 360.0;
+    let result: f32;
+
+    // point 'a' and 'b are actually the same point,
+    // and therefore no angle exists between them.
+    if dx == 0.0 && dy == 0.0 {
+        return None;
     }
-    result
+
+    // the two points make a vertical line
+    if dx == 0.0 {
+        if yb < ya {
+            // yb is "above" ya
+            result = 90.0;
+        } else {
+            // yb is "below" ya
+            result = 270.0;
+        }
+        return Some(result);
+    }
+
+    // the two points make a horizontal line
+    if dy == 0.0 {
+        if xb > xa {
+            // xb is "right" of xa
+            result = 0.0;
+        } else {
+            // xb is "left" of xa
+            result = 180.0;
+        }
+        return Some(result);
+    }
+
+
+    // only positive deltas means the atan only returns angles [0, 90[.
+    // this initial angle can then be rotated by 90 degree increments as needed.
+    result = (dy / dx).atan() * 180.0 / f32::consts::PI;
+
+    if xb < xa && yb < ya {
+        // is the line oriented top-left? (Q2: 90->180)
+        return Some(result + 90.0);
+    } else if xb < xa && (yb > ya || dy == 0.0) {
+        // is the line oriented bottom-left? (Q3: 180->270)
+        return Some(result + 180.0);
+    } else if xb > xa && yb > ya {
+        // is the line oriented bottom-right? (Q4: 270->360)
+        return Some(result + 270.0);
+    } else {
+        // is the line oriented top-right? (Q1: 0->90)
+        return Some(result);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_angle_returns_correct_value_around_origin() {
+        //
+        // (-1,-1) (0, -1) (+1, -1)
+        // (-1, 0) (0 , 0) (+1,  0) ------> (+x)
+        // (-1,+1) (0, +1) (+1, +1)
+        //            |
+        //            |
+        //            |
+        //            v
+        //           (+y)
+
+        let origin: (f32, f32) = (0.0, 0.0);
+        let mut coord: (f32, f32);
+
+        coord = (1.0, 0.0);
+        assert!(get_angle(&origin, &coord) == Some(0.0));
+        coord = (1.0, -1.0);
+        assert!(get_angle(&origin, &coord) == Some(45.0));
+        coord = (0.0, -1.0);
+        assert!(get_angle(&origin, &coord) == Some(90.0));
+        coord = (-1.0, -1.0);
+        assert!(get_angle(&origin, &coord) == Some(135.0));
+        coord = (-1.0, 0.0);
+        println!("{:?}", get_angle(&origin, &coord));
+        assert!(get_angle(&origin, &coord) == Some(180.0));
+        coord = (-1.0, 1.0);
+        assert!(get_angle(&origin, &coord) == Some(225.0));
+        coord = (0.0, 1.0);
+        assert!(get_angle(&origin, &coord) == Some(270.0));
+        coord = (1.0, 1.0);
+        assert!(get_angle(&origin, &coord) == Some(315.0));
+    }
+
+    #[test]
+    fn test_get_angle_returns_correct_value_when_xy_values_are_never_negative() {
+        //  * --------> (+x)
+        //  |
+        //  |
+        //  |
+        //  v
+        // (+y)
+
+        let origin: (f32, f32) = (1.0, 1.0);
+        let mut coord: (f32, f32);
+
+        coord = (origin.0 + 1.0, origin.1 + 0.0);
+        assert!(get_angle(&origin, &coord) == Some(0.0));
+        coord = (origin.0 + 1.0, origin.1 - 1.0);
+        assert!(get_angle(&origin, &coord) == Some(45.0));
+        coord = (origin.0 + 0.0, origin.1 - 1.0);
+        assert!(get_angle(&origin, &coord) == Some(90.0));
+        coord = (origin.0 - 1.0, origin.1 - 1.0);
+        assert!(get_angle(&origin, &coord) == Some(135.0));
+        coord = (origin.0 - 1.0, origin.1 + 0.0);
+        assert!(get_angle(&origin, &coord) == Some(180.0));
+        coord = (origin.0 - 1.0, origin.1 + 1.0);
+        assert!(get_angle(&origin, &coord) == Some(225.0));
+        coord = (origin.0 + 0.0, origin.1 + 1.0);
+        assert!(get_angle(&origin, &coord) == Some(270.0));
+        coord = (origin.0 + 1.0, origin.1 + 1.0);
+        assert!(get_angle(&origin, &coord) == Some(315.0));
+    }
 }
 
 // -------------------------------------------------------------------------- //
@@ -75,7 +199,6 @@ pub struct Circle<'a> {
 }
 
 impl Circle<'_> {
-
     /// creates a new circle using references to data owned by caller.
     pub fn new<'a>(centroid: &'a (f32, f32), radius: &'a f32) -> Circle<'a> {
         Circle { centroid, radius }
@@ -121,7 +244,6 @@ pub struct Rectangle<'a> {
 }
 
 impl Rectangle<'_> {
-
     /// creates a new circle using references to data owned by caller.
     pub fn new<'a>(centroid: &'a (f32, f32), apothems: &'a (f32, f32)) -> Rectangle<'a> {
         Rectangle { centroid, apothems }
