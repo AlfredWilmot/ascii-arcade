@@ -50,8 +50,12 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
     if my_hitbox.intersects(&thy_hitbox) {
         // where is the other entity relative to us?
         let direction_of_target: ORIENTATION;
-        if let Some(val) = ORIENTATION::from_angle(&get_angle(&me.pos, &thee.pos)) {
-            direction_of_target = val;
+        if let Some(angle) = &get_angle(&me.pos, &thee.pos) {
+            if let Some(val) = ORIENTATION::from_angle(angle) {
+                direction_of_target = val;
+            } else {
+                return;
+            }
         } else {
             return;
         }
@@ -96,8 +100,13 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
 
         // are we travelling towards the other entity?
         let direction_of_travel: ORIENTATION;
-        if let Some(val) = ORIENTATION::from_angle(&me.direction()) {
-            direction_of_travel = val;
+        let origin: (f32, f32) = (0.0, 0.0);
+        if let Some(vel) = &get_angle(&origin, &me.vel) {
+            if let Some(direction) = ORIENTATION::from_angle(vel) {
+                direction_of_travel = direction;
+            } else {
+                return;
+            }
         } else {
             return;
         }
