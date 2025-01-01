@@ -115,7 +115,7 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         }
 
         // IF we collide, what will our resulting velocitues be along each axis?
-        let (my_vel, thy_vel) = physics::collision_calc(&me, &thee);
+        let (my_vel, thy_vel) = physics::collision_calc(me, thee);
 
         // IF I am travelling towards the target, then consider this a COLLISION!
         if direction_of_travel == direction_of_target {

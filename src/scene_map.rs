@@ -22,10 +22,9 @@ pub fn adjacent(map: &EntityMap, x: u16, y: u16) -> Vec<&Entity> {
     }
 
     for coord in adjacent_coords {
-        match map.get(&coord) {
-            Some(entity) => adjacent_entities.push(entity),
-            None => (),
-        }
+        if let Some(entity) = map.get(&coord) {
+            adjacent_entities.push(entity)
+        };
     }
     adjacent_entities
 }
@@ -35,14 +34,16 @@ pub fn adjacent(map: &EntityMap, x: u16, y: u16) -> Vec<&Entity> {
 pub fn remove(map: &mut EntityMap, x: u16, y: u16) -> Option<Entity> {
     map.remove(&(x, y))
 }
-//// moves ownership of the entity from the caller back into the scene
+
+/// moves ownership of the entity from the caller back into the scene
 pub fn insert(map: &mut EntityMap, entity: Entity) {
     _ = map.insert(entity.coordinates(), entity)
 }
 
 /// creates a coordinate-queryable hashmap of entities from a vector of entities
-pub fn make_entity_map(entities: &Vec<Entity>) -> EntityMap {
+pub fn make_entity_map(entities: &[Entity]) -> EntityMap {
     entities
+        .to_owned()
         .clone()
         .into_iter()
         .map(|ent| (ent.coordinates(), ent))

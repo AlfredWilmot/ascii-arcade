@@ -9,8 +9,10 @@ mod tests {
         let mut entities = Vec::new();
         for _i in 1..=i {
             for _j in 1..=j {
-                let mut entity = Entity::default();
-                entity.pos = (_i as f32, _j as f32);
+                let entity = Entity {
+                    pos: (_i as f32, _j as f32),
+                    ..Default::default()
+                };
                 entities.push(entity);
             }
         }
@@ -35,19 +37,16 @@ mod tests {
         let mut scene: EntityMap = make_entity_map(&entities);
 
         // if a coordinate has an entity assigned to it, then the Option<> will contain that entity
-        match remove(&mut scene, 1, 1) {
-            Some(..) => assert!(true),
-            None => assert!(false),
+        if remove(&mut scene, 1, 1).is_none() {
+            panic!()
         }
-        match remove(&mut scene, 2, 1) {
-            Some(..) => assert!(true),
-            None => assert!(false),
+        if remove(&mut scene, 2, 1).is_none() {
+            panic!()
         }
 
         // if a coordinate does not have an entity assigned to it, then the Option<> will contain None
-        match remove(&mut scene, 2, 1) {
-            Some(..) => assert!(false),
-            None => assert!(true),
+        if remove(&mut scene, 2, 1).is_some() {
+            panic!()
         }
     }
 
@@ -58,13 +57,13 @@ mod tests {
         let mut scene = make_entity_map(&entities);
 
         // this removes the entity from the scene
-        match remove(&mut scene, 1, 1) {
-            Some(..) => assert!(true),
-            None => assert!(false),
+        if remove(&mut scene, 1, 1).is_none() {
+            panic!()
         }
-        match remove(&mut scene, 1, 1) {
-            Some(..) => assert!(false),
-            None => assert!(true),
+
+        // so the same entity should no longer be present
+        if remove(&mut scene, 1, 1).is_some() {
+            panic!()
         }
     }
 
@@ -103,12 +102,9 @@ mod tests {
 
         // extract our hero from the scene, update their position (could be done by a physics
         // calculation, for instance), and then reinsert them into the scene.
-        match remove(&mut scene, 3, 2) {
-            Some(mut goblin) => {
-                goblin.pos = (4.0, 2.0);
-                insert(&mut scene, goblin);
-            }
-            _ => (),
+        if let Some(mut goblin) = remove(&mut scene, 3, 2) {
+            goblin.pos = (4.0, 2.0);
+            insert(&mut scene, goblin);
         }
         // they should now  only be adjacent to two other entities
         assert!(adjacent(&scene, 4, 2).len() == 2);

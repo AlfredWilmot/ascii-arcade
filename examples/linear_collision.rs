@@ -23,14 +23,17 @@ fn main() {
     let mut entities_then: Entities;
 
     // player to be controlled by user
-    let mut player: Entity = Entity::default();
-    player.id = EntityType::Player;
-    player.mass = 1.0;
+    let player = Entity {
+        id: EntityType::Player,
+        ..Default::default()
+    };
     entities_now.push(player);
 
     // copies of this entity are created when LMB is pressed
-    let mut spawned: Entity = Entity::default();
-    spawned.id = EntityType::Npc;
+    let mut spawned = Entity {
+        id: EntityType::Npc,
+        ..Default::default()
+    };
 
     //
     // GAME LOOP
@@ -38,7 +41,7 @@ fn main() {
     let dt = Duration::from_millis(TIME_DELTA_MS).as_secs_f32();
     'game: loop {
         // capture the current state of the scene
-        entities_then = entities_now.iter().map(|entity| entity.clone()).collect();
+        entities_then = entities_now.to_vec();
 
         // create a mutable reference to the "player" entity"
         let player = &mut entities_now[0];

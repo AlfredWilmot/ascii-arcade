@@ -24,42 +24,40 @@ impl ORIENTATION {
         let deg = *deg % 360.0;
 
         // split the full rotation into 45 degree segements for each of the 8 possible orientations
-        let result = if (deg >= 0.0 && deg < 22.5) || (deg > 337.5 && deg <= 360.0) {
+        if (0.0..22.5).contains(&deg) || (337.5..=360.0).contains(&deg) {
             Some(ORIENTATION::East)
-        } else if deg >= 22.5 && deg <= 67.5 {
+        } else if (22.5..67.5).contains(&deg) {
             Some(ORIENTATION::NorthEast)
-        } else if deg > 67.5 && deg < 112.5 {
+        } else if (67.5..112.5).contains(&deg) {
             Some(ORIENTATION::North)
-        } else if deg >= 112.5 && deg <= 157.5 {
+        } else if (112.5..157.5).contains(&deg) {
             Some(ORIENTATION::NorthWest)
-        } else if deg > 157.5 && deg < 202.5 {
+        } else if (157.5..202.5).contains(&deg) {
             Some(ORIENTATION::West)
-        } else if deg >= 202.5 && deg <= 247.5 {
+        } else if (202.5..247.5).contains(&deg) {
             Some(ORIENTATION::SouthWest)
-        } else if deg > 247.5 && deg < 292.5 {
+        } else if (247.5..292.5).contains(&deg) {
             Some(ORIENTATION::South)
-        } else if deg >= 292.5 && deg <= 337.5 {
+        } else if (292.5..337.5).contains(&deg) {
             Some(ORIENTATION::SouthEast)
         } else {
             None
-        };
-        return result;
+        }
     }
 }
 
-/// returns Some(angle) of the line connecting point 'a' to point 'b' in the xy plane.
-/// returns None if the points are the same.
-/// e.g.
-///   * --------------> (+x)
-///   |
-///   |   (ax, ay)
-///   |   x
-///   |
-///   |              x
-///   |               (bx, by)
-///   v
-///  (+y)
-///
+// returns Some(angle) of the line connecting point 'a' to point 'b' in the xy plane.
+// returns None if the points are the same.
+// e.g.
+//
+//   * --> (+x)
+//   |
+//   v         (ax, ay)
+//  (+y)     x
+//
+//                 x
+//                  (bx, by)
+//
 pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
     let (xa, ya) = a;
     let (xb, yb) = b;
@@ -107,19 +105,19 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
     // is the line oriented top-left? (Q2: 90->180)
     // reflect the result around the y-axis
     if xb < xa && yb < ya {
-        return Some(180.0 - result);
+        Some(180.0 - result)
     // is the line oriented bottom-left? (Q3: 180->270)
     // reflect the result around both the x-axis and y-axis
     } else if xb < xa && (yb > ya || dy == 0.0) {
-        return Some(180.0 + result);
+        Some(180.0 + result)
     // is the line oriented bottom-right? (Q4: 270->360)
     // reflect the result around both the x-axis
     } else if xb > xa && yb > ya {
-        return Some(360.0 - result);
+        Some(360.0 - result)
     } else {
         // is the line oriented top-right? (Q1: 0->90)
         // no need to reflect into another Quadrant
-        return Some(result);
+        Some(result)
     }
 }
 
@@ -146,7 +144,7 @@ impl Circle<'_> {
         let dy = (self.centroid.1 - other.centroid.1).abs();
         let r = self.radius + other.radius;
 
-        return dx <= r && dy <= r;
+        dx <= r && dy <= r
     }
 
     /// returns length of the overlap between two circles.
@@ -157,9 +155,9 @@ impl Circle<'_> {
             return 0.0;
         }
         let dx_pow2 = (self.centroid.0 - other.centroid.0).powi(2);
-        let dy_pow2 = (self.centroid.1 - self.centroid.1).powi(2);
+        let dy_pow2 = (self.centroid.1 - other.centroid.1).powi(2);
         let centroid_separation_distance = (dx_pow2 + dy_pow2).sqrt();
-        return self.radius + other.radius - centroid_separation_distance;
+        self.radius + other.radius - centroid_separation_distance
     }
 }
 
@@ -185,13 +183,12 @@ impl Rectangle<'_> {
 
     /// determine whether two rectangles are intersecting.
     pub fn intersects(&self, other: &Rectangle) -> bool {
-        let (dx, dy) = self.overlap_size(&other);
+        let (dx, dy) = self.overlap_size(other);
 
         if dx == 0.0 || dy == 0.0 {
             return false;
         }
-
-        return true;
+        true
     }
 
     /// returns the (length, width) of the Rectangle that would be formed
@@ -207,6 +204,6 @@ impl Rectangle<'_> {
             return (0.0, 0.0);
         }
 
-        return (x_overlap, y_overlap);
+        (x_overlap, y_overlap)
     }
 }

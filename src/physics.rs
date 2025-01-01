@@ -20,9 +20,9 @@ pub fn update(ent: &mut Entity, dt: f32) {
 
 /// calculate resultant velocity of e1 when colliding with e2, from ...
 /// >> conservation of kinetic energy:
-///     0.5*m1*v_1a^2 + 0.5*m2*v_2a^2 = 0.5*m1*v_1b^2 + 0.5*m2*v_2b^2
+/// > > 0.5*m1*v_1a^2 + 0.5*m2*v_2a^2 = 0.5*m1*v_1b^2 + 0.5*m2*v_2b^2
 /// >> conservation of momentum :
-///     m1*v_1a + m2*v_2a = m1*v_1b + m2*v_2b
+/// > > m1*v_1a + m2*v_2a = m1*v_1b + m2*v_2b
 ///
 pub fn collision_calc(e1: &Entity, e2: &Entity) -> ((f32, f32), (f32, f32)) {
     let v_1ax = e1.vel.0;
@@ -56,24 +56,26 @@ pub fn apply_constraints(ent: &mut Entity) {
     // limit position to window
     let window = termion::terminal_size().unwrap_or(WINDOW);
 
-    let mut wall = Entity::default();
-    wall.mass = 1000.0;
+    let mut wall = Entity {
+        mass: 1000.0,
+        ..Default::default()
+    };
 
-    if constrain(&mut ent.pos.0, 0.0 as f32, (window.0 - 1) as f32) {
+    if constrain(&mut ent.pos.0, 0.0_f32, (window.0 - 1) as f32) {
         if ent.pos.0 == 0.0 {
             wall.pos = (ent.pos.0 - ent.hit_radius, ent.pos.1)
         } else {
             wall.pos = (ent.pos.0 + ent.hit_radius, ent.pos.1)
         }
-        ent.vel.0 = collision_calc(&ent, &wall).0 .0 * 0.5;
+        ent.vel.0 = collision_calc(ent, &wall).0 .0 * 0.5;
     }
-    if constrain(&mut ent.pos.1, 0.0 as f32, (window.1 - 1) as f32) {
+    if constrain(&mut ent.pos.1, 0.0_f32, (window.1 - 1) as f32) {
         if ent.pos.1 == 0.0 {
             wall.pos = (ent.pos.0, ent.pos.1 - ent.hit_radius)
         } else {
             wall.pos = (ent.pos.0, ent.pos.1 + ent.hit_radius)
         }
-        ent.vel.1 = collision_calc(&ent, &wall).0 .1 * 0.2;
+        ent.vel.1 = collision_calc(ent, &wall).0 .1 * 0.2;
     }
 }
 
@@ -87,5 +89,5 @@ fn constrain<T: PartialEq + PartialOrd>(val: &mut T, lower_limit: T, upper_limit
         *val = lower_limit;
         return true;
     }
-    return false;
+    false
 }
