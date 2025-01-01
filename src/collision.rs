@@ -1,7 +1,6 @@
-use crate::collision_geometry::{get_angle, Circle, ORIENTATION};
-use crate::entity::{Entities, Entity, EntityType};
+use crate::collision_geometry::{get_angle, Rectangle, ORIENTATION};
+use crate::entity::{Entities, Entity};
 use crate::physics;
-use crate::scene::debug_print;
 
 pub fn resolve(entities: &mut Entities) {
     pair_wise_comparison(entities, basic_collision_handling);
@@ -45,16 +44,15 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
     // (ASSUME ON CURRENT TIME-STEP AS INTERSECTION HAS ALREADY HAPPENED)
 
     // We're within each other's hit radii, but how should we characterize the collision?
-    let my_hitbox = Circle::new(&me.pos, &me.hit_radius);
-    let thy_hitbox = Circle::new(&thee.pos, &thee.hit_radius);
+    let my_apothems: (f32, f32) = (me.hit_radius, me.hit_radius);
+    let thy_apothems: (f32, f32) = (thee.hit_radius, me.hit_radius);
+    let my_hitbox = Rectangle::new(&me.pos, &my_apothems);
+    let thy_hitbox = Rectangle::new(&thee.pos, &thy_apothems);
 
     if my_hitbox.intersects(&thy_hitbox) {
         // where is the other entity relative to us?
         let direction_of_target: ORIENTATION;
         if let Some(angle) = &get_angle(&me.pos, &thee.pos) {
-            if me.id == EntityType::Player {
-                debug_print(format!("target: {:.2}", angle), 1);
-            }
             if let Some(val) = ORIENTATION::from_angle(angle) {
                 direction_of_target = val;
             } else {
@@ -65,40 +63,41 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         }
 
         // we're clipping the target, so let's adjust our position...
-        let overlap = my_hitbox.overlap_length(&thy_hitbox);
-        let repulsion = 100.0_f32.powf(overlap);
+        let overlap = my_hitbox.overlap_size(&thy_hitbox);
+        let repulsion_x = 100.0_f32.powf(overlap.0);
+        let repulsion_y = 100.0_f32.powf(overlap.1);
         match direction_of_target {
             ORIENTATION::East => {
-                me.acc = (-repulsion, me.acc.1);
-                thee.acc = (repulsion, thee.acc.1);
+                me.acc = (-repulsion_x, me.acc.1);
+                thee.acc = (repulsion_x, thee.acc.1);
             }
             ORIENTATION::NorthEast => {
-                me.acc = (-repulsion, repulsion);
-                thee.acc = (repulsion, -repulsion);
+                me.acc = (-repulsion_x, repulsion_y);
+                thee.acc = (repulsion_x, -repulsion_y);
             }
             ORIENTATION::North => {
-                me.acc = (me.acc.0, repulsion);
-                thee.acc = (thee.acc.0, -repulsion);
+                me.acc = (me.acc.0, repulsion_y);
+                thee.acc = (thee.acc.0, -repulsion_y);
             }
             ORIENTATION::NorthWest => {
-                me.acc = (repulsion, repulsion);
-                thee.acc = (-repulsion, -repulsion);
+                me.acc = (repulsion_x, repulsion_y);
+                thee.acc = (-repulsion_x, -repulsion_y);
             }
             ORIENTATION::West => {
-                me.acc = (repulsion, me.acc.1);
-                thee.acc = (-repulsion, thee.acc.1);
+                me.acc = (repulsion_x, me.acc.1);
+                thee.acc = (-repulsion_x, thee.acc.1);
             }
             ORIENTATION::SouthWest => {
-                me.acc = (repulsion, -repulsion);
-                thee.acc = (-repulsion, repulsion);
+                me.acc = (repulsion_x, -repulsion_y);
+                thee.acc = (-repulsion_x, repulsion_y);
             }
             ORIENTATION::South => {
-                me.acc = (me.acc.0, -repulsion);
-                thee.acc = (thee.acc.0, repulsion);
+                me.acc = (me.acc.0, -repulsion_y);
+                thee.acc = (thee.acc.0, repulsion_y);
             }
             ORIENTATION::SouthEast => {
-                me.acc = (-repulsion, -repulsion);
-                thee.acc = (repulsion, repulsion);
+                me.acc = (-repulsion_x, -repulsion_y);
+                thee.acc = (repulsion_x, repulsion_y);
             }
         }
 
@@ -106,9 +105,6 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         let direction_of_travel: ORIENTATION;
         let origin: (f32, f32) = (0.0, 0.0);
         if let Some(angle) = &get_angle(&origin, &me.vel) {
-            if me.id == EntityType::Player {
-                debug_print(format!("travel: {:.2}", angle), 2);
-            }
             if let Some(direction) = ORIENTATION::from_angle(angle) {
                 direction_of_travel = direction;
             } else {
