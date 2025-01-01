@@ -16,7 +16,7 @@ pub fn init() -> MouseTerminal<RawTerminal<Stdout>> {
     // - https://stackoverflow.com/a/55881770
     let stdout = MouseTerminal::from(io::stdout().into_raw_mode().unwrap());
     println!("{}{}", termion::cursor::Hide, termion::clear::All);
-    return stdout;
+    stdout
 }
 
 /// clean-up terminal
@@ -31,7 +31,7 @@ pub fn close() {
 
 /// Print diagnostic information
 pub fn debug_print<T: Debug>(text: T, offset: u16) {
-    let offset = if offset <= 0 { 1 } else { offset };
+    let offset = if offset == 0 { 1 } else { offset };
     println!(
         "{}{}{:?}",
         termion::cursor::Goto(1, offset),

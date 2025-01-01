@@ -1,129 +1,140 @@
-use crate::collision_geometry::{get_angle, Circles, ORIENTATION};
-use crate::entity::{Entities, EntityState};
+use crate::collision_geometry::{get_angle, Rectangle, ORIENTATION};
+use crate::entity::{Entities, Entity};
 use crate::physics;
-use crate::scene;
+
+pub fn resolve(entities: &mut Entities) {
+    pair_wise_comparison(entities, basic_collision_handling);
+}
 
 // -------------------------------------------------------------------------- //
 // ------------------------------ ALGORITHMS -------------------------------- //
 // -------------------------------------------------------------------------- //
 
-/// compares each entity on the scene against all other entities on the scene
-pub fn pair_wise_comparison(now: &mut Entities) {
-    for i in 0..now.len() {
+/// compares each entity on the scene against all other entities on the scene.
+/// WARNING: comparing each entity against ALL other entities on the scene
+/// is the WORST-CASE scenario (n^2)
+fn pair_wise_comparison(entities: &mut Entities, func: fn(&mut Entity, &mut Entity)) {
+    let mut entity_a: Entity;
+    let mut entity_b: Entity;
+
+    for i in 0..entities.len() {
         // perform collision detection against ALL other entities in the scene (n^2)
-        for j in 0..now.len() {
+        for j in 0..entities.len() {
             // an entity cannot collide with itself!
             if i == j {
                 continue;
             }
 
-            // when is the projected collision going to occur?
-            // (ASSUME ON CURRENT TIME-STEP AS INTERSECTION HAS ALREADY HAPPENED)
+            // NOTE: not a fan of cloning here,
+            // need to find a way to mutably access >=2 entries in the entities vector
+            // this will become more important if additional unique state data is created for each entity
+            entity_a = entities[i].clone();
+            entity_b = entities[j].clone();
 
-            // We're within each other's hit radii, but how should we characterize the collision?
-            if Circles::intersecting(
-                &now[i].pos,
-                &now[j].pos,
-                &now[i].hit_radius,
-                &now[j].hit_radius,
-            ) {
-                now[i].state = EntityState::Dead;
-                now[j].state = EntityState::Dead;
+            func(&mut entity_a, &mut entity_b);
 
-                // where is the other entity relative to us?
-                let direction_of_target: ORIENTATION;
-                if let Some(val) = ORIENTATION::from_angle(&get_angle(&now[i].pos, &now[j].pos)) {
-                    direction_of_target = val;
-                    if i == 0 {
-                        scene::debug_print(
-                            format!("direction_of_target: {:?}", direction_of_target),
-                            1,
-                        );
-                    }
-                } else {
-                    continue;
-                }
+            entities[i] = entity_a;
+            entities[j] = entity_b;
+        }
+    }
+}
 
-                // we're clipping the target, so let's adjust our position...
-                let overlap = Circles::intersect_length(
-                    &now[i].pos,
-                    &now[j].pos,
-                    &now[i].hit_radius,
-                    &now[j].hit_radius,
-                );
-                let repulsion = 10000.0_f32.powf(overlap);
-                match direction_of_target {
-                    ORIENTATION::East => {
-                        now[i].acc = (-repulsion, now[i].acc.1);
-                        now[j].acc = (repulsion, now[j].acc.1);
-                    }
-                    ORIENTATION::NorthEast => {
-                        now[i].acc = (-repulsion, repulsion);
-                        now[j].acc = (repulsion, -repulsion);
-                    }
-                    ORIENTATION::North => {
-                        now[i].acc = (now[i].acc.0, repulsion);
-                        now[j].acc = (now[j].acc.0, -repulsion);
-                    }
-                    ORIENTATION::NorthWest => {
-                        now[i].acc = (repulsion, repulsion);
-                        now[j].acc = (-repulsion, -repulsion);
-                    }
-                    ORIENTATION::West => {
-                        now[i].acc = (repulsion, now[i].acc.1);
-                        now[j].acc = (-repulsion, now[j].acc.1);
-                    }
-                    ORIENTATION::SouthWest => {
-                        now[i].acc = (repulsion, -repulsion);
-                        now[j].acc = (-repulsion, repulsion);
-                    }
-                    ORIENTATION::South => {
-                        now[i].acc = (now[i].acc.0, -repulsion);
-                        now[j].acc = (now[j].acc.0, repulsion);
-                    }
-                    ORIENTATION::SouthEast => {
-                        now[i].acc = (-repulsion, -repulsion);
-                        now[j].acc = (repulsion, repulsion);
-                    }
-                }
+fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
+    // when is the projected collision going to occur?
+    // (ASSUME ON CURRENT TIME-STEP AS INTERSECTION HAS ALREADY HAPPENED)
 
-                // are we travelling towards the other entity?
-                let direction_of_travel: ORIENTATION;
-                if let Some(val) = ORIENTATION::from_angle(&now[i].direction()) {
-                    direction_of_travel = val;
-                    if i == 0 {
-                        scene::debug_print(
-                            format!("direction_of_travel: {:?}", direction_of_travel),
-                            2,
-                        );
-                    }
-                } else {
-                    continue;
-                }
+    // We're within each other's hit radii, but how should we characterize the collision?
+    let my_apothems: (f32, f32) = (me.hit_radius, me.hit_radius);
+    let thy_apothems: (f32, f32) = (thee.hit_radius, me.hit_radius);
+    let my_hitbox = Rectangle::new(&me.pos, &my_apothems);
+    let thy_hitbox = Rectangle::new(&thee.pos, &thy_apothems);
 
-                // IF we collide, what will our resulting velocitues be along each axis?
-                let (my_vel, thy_vel) = physics::collision_calc(&now[i], &now[j]);
-
-                // IF I am travelling towards the target, then consider this a COLLISION!
-                if direction_of_travel == direction_of_target {
-                    match direction_of_travel {
-                        ORIENTATION::East | ORIENTATION::West => {
-                            now[i].vel.0 = my_vel.0;
-                            now[j].vel.0 = thy_vel.0;
-                        }
-                        ORIENTATION::North
-                        | ORIENTATION::South
-                        | ORIENTATION::NorthEast
-                        | ORIENTATION::NorthWest
-                        | ORIENTATION::SouthEast
-                        | ORIENTATION::SouthWest => {
-                            now[i].vel.1 = my_vel.1;
-                            now[j].vel.1 = thy_vel.1;
-                        }
-                    }
-                }
+    if my_hitbox.intersects(&thy_hitbox) {
+        // where is the other entity relative to us?
+        let direction_of_target: ORIENTATION;
+        if let Some(angle) = &get_angle(&me.pos, &thee.pos) {
+            if let Some(val) = ORIENTATION::from_angle(angle) {
+                direction_of_target = val;
             } else {
-                now[i].state = EntityState::Alive;
+                return;
+            }
+        } else {
+            return;
+        }
+
+        // we're clipping the target, so let's adjust our position...
+        let overlap = my_hitbox.overlap_size(&thy_hitbox);
+        let repulsion_x = 100.0_f32.powf(overlap.0);
+        let repulsion_y = 100.0_f32.powf(overlap.1);
+        match direction_of_target {
+            ORIENTATION::East => {
+                me.acc = (-repulsion_x, me.acc.1);
+                thee.acc = (repulsion_x, thee.acc.1);
+            }
+            ORIENTATION::NorthEast => {
+                me.acc = (-repulsion_x, repulsion_y);
+                thee.acc = (repulsion_x, -repulsion_y);
+            }
+            ORIENTATION::North => {
+                me.acc = (me.acc.0, repulsion_y);
+                thee.acc = (thee.acc.0, -repulsion_y);
+            }
+            ORIENTATION::NorthWest => {
+                me.acc = (repulsion_x, repulsion_y);
+                thee.acc = (-repulsion_x, -repulsion_y);
+            }
+            ORIENTATION::West => {
+                me.acc = (repulsion_x, me.acc.1);
+                thee.acc = (-repulsion_x, thee.acc.1);
+            }
+            ORIENTATION::SouthWest => {
+                me.acc = (repulsion_x, -repulsion_y);
+                thee.acc = (-repulsion_x, repulsion_y);
+            }
+            ORIENTATION::South => {
+                me.acc = (me.acc.0, -repulsion_y);
+                thee.acc = (thee.acc.0, repulsion_y);
+            }
+            ORIENTATION::SouthEast => {
+                me.acc = (-repulsion_x, -repulsion_y);
+                thee.acc = (repulsion_x, repulsion_y);
+            }
+        }
+
+        // are we travelling towards the other entity?
+        let direction_of_travel: ORIENTATION;
+        let origin: (f32, f32) = (0.0, 0.0);
+        if let Some(angle) = &get_angle(&origin, &me.vel) {
+            if let Some(direction) = ORIENTATION::from_angle(angle) {
+                direction_of_travel = direction;
+            } else {
+                return;
+            }
+        } else {
+            return;
+        }
+
+        // IF we collide, what will our resulting velocitues be along each axis?
+        let (my_vel, thy_vel) = physics::collision_calc(me, thee);
+
+        // IF I am travelling towards the target, then consider this a COLLISION!
+        if direction_of_travel == direction_of_target {
+            match direction_of_travel {
+                ORIENTATION::East | ORIENTATION::West => {
+                    me.vel.0 = my_vel.0;
+                    thee.vel.0 = thy_vel.0;
+                }
+                ORIENTATION::North | ORIENTATION::South => {
+                    me.vel.1 = my_vel.1;
+                    thee.vel.1 = thy_vel.1;
+                }
+                ORIENTATION::NorthEast
+                | ORIENTATION::NorthWest
+                | ORIENTATION::SouthEast
+                | ORIENTATION::SouthWest => {
+                    me.vel = my_vel;
+                    thee.vel = thy_vel;
+                }
             }
         }
     }
