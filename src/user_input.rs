@@ -46,17 +46,13 @@ pub fn keyboard_control(rx: &mpsc::Receiver<termion::event::Event>) -> Cmd {
                     other_key => Cmd::DEBUG(Event::Key(other_key)),
                 },
 
-                Event::Mouse(MouseEvent::Press(MouseButton::Left, x, y)) => {
-                    Cmd::SPAWN(x, y)
-                }
+                Event::Mouse(MouseEvent::Press(MouseButton::Left, x, y)) => Cmd::SPAWN(x, y),
                 other_event => {
                     // other keys
                     Cmd::DEBUG(other_event)
                 }
             }
         }
-        Err(_) => {
-            Cmd::STOP
-        }
+        Err(_) => Cmd::STOP,
     }
 }
