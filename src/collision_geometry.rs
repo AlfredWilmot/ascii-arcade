@@ -104,17 +104,21 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
     // this initial angle can then be rotated by 90 degree increments as needed.
     result = (dy / dx).atan() * 180.0 / f32::consts::PI;
 
+    // is the line oriented top-left? (Q2: 90->180)
+    // reflect the result around the y-axis
     if xb < xa && yb < ya {
-        // is the line oriented top-left? (Q2: 90->180)
-        return Some(result + 90.0);
+        return Some(180.0 - result);
+    // is the line oriented bottom-left? (Q3: 180->270)
+    // reflect the result around both the x-axis and y-axis
     } else if xb < xa && (yb > ya || dy == 0.0) {
-        // is the line oriented bottom-left? (Q3: 180->270)
-        return Some(result + 180.0);
+        return Some(180.0 + result);
+    // is the line oriented bottom-right? (Q4: 270->360)
+    // reflect the result around both the x-axis
     } else if xb > xa && yb > ya {
-        // is the line oriented bottom-right? (Q4: 270->360)
-        return Some(result + 270.0);
+        return Some(360.0 - result);
     } else {
         // is the line oriented top-right? (Q1: 0->90)
+        // no need to reflect into another Quadrant
         return Some(result);
     }
 }
@@ -158,11 +162,11 @@ mod tests_angle {
     #[test]
     fn test_get_angle_returns_correct_value_around_origin_at_regular_rotational_increments() {
         let origins = vec![
-            (0.0, 0.0), // origin
+            (0.0, 0.0),    // origin
             (6.66, -6.66), // Q1 (top-right)
             (-6.66, 6.66), // Q2 (top-left)
             (-6.66, 6.66), // Q3 (btm-left)
-            (6.66, 6.66), // Q4 (btm-right)
+            (6.66, 6.66),  // Q4 (btm-right)
         ];
 
         for origin in origins {
