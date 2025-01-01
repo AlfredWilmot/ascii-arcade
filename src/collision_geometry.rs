@@ -100,7 +100,6 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
         return Some(result);
     }
 
-
     // only positive deltas means the atan only returns angles [0, 90[.
     // this initial angle can then be rotated by 90 degree increments as needed.
     result = (dy / dx).atan() * 180.0 / f32::consts::PI;
@@ -124,68 +123,71 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
 mod tests_angle {
     use super::*;
 
-    #[test]
-    fn test_get_angle_returns_correct_value_around_origin() {
-        //
-        // (-1,-1) (0, -1) (+1, -1)
-        // (-1, 0) (0 , 0) (+1,  0) ------> (+x)
-        // (-1,+1) (0, +1) (+1, +1)
-        //            |
-        //            |
-        //            |
-        //            v
-        //           (+y)
+    fn generate_coords_around_point_every_45_deg(
+        point: &(f32, f32),
+    ) -> Vec<((f32, f32), Option<f32>)> {
+        let dx: f32 = 1.0;
+        let dy: f32 = 1.0;
+        vec![
+            ((point.0 + dx, point.1), Some(0.0)),
+            ((point.0 + dx, point.1 - dy), Some(45.0)),
+            ((point.0, point.1 - dy), Some(90.0)),
+            ((point.0 - dx, point.1 - dy), Some(135.0)),
+            ((point.0 - dx, point.1), Some(180.0)),
+            ((point.0 - dx, point.1 + dy), Some(225.0)),
+            ((point.0, point.1 + dy), Some(270.0)),
+            ((point.0 + dx, point.1 + dy), Some(315.0)),
+        ]
+    }
 
-        let origin: (f32, f32) = (0.0, 0.0);
-        let mut coord: (f32, f32);
-
-        coord = (1.0, 0.0);
-        assert!(get_angle(&origin, &coord) == Some(0.0));
-        coord = (1.0, -1.0);
-        assert!(get_angle(&origin, &coord) == Some(45.0));
-        coord = (0.0, -1.0);
-        assert!(get_angle(&origin, &coord) == Some(90.0));
-        coord = (-1.0, -1.0);
-        assert!(get_angle(&origin, &coord) == Some(135.0));
-        coord = (-1.0, 0.0);
-        println!("{:?}", get_angle(&origin, &coord));
-        assert!(get_angle(&origin, &coord) == Some(180.0));
-        coord = (-1.0, 1.0);
-        assert!(get_angle(&origin, &coord) == Some(225.0));
-        coord = (0.0, 1.0);
-        assert!(get_angle(&origin, &coord) == Some(270.0));
-        coord = (1.0, 1.0);
-        assert!(get_angle(&origin, &coord) == Some(315.0));
+    fn generate_coords_around_point_every_60_deg(
+        point: &(f32, f32),
+    ) -> Vec<((f32, f32), Option<f32>)> {
+        let dx: f32 = 1.0;
+        let dy: f32 = f32::sqrt(3.0);
+        vec![
+            ((point.0 + dx, point.1), Some(0.0)),
+            ((point.0 + dx, point.1 - dy), Some(60.0)),
+            ((point.0 - dx, point.1 - dy), Some(120.0)),
+            ((point.0 - dx, point.1), Some(180.0)),
+            ((point.0 - dx, point.1 + dy), Some(240.0)),
+            ((point.0 + dx, point.1 + dy), Some(300.0)),
+        ]
     }
 
     #[test]
-    fn test_get_angle_returns_correct_value_when_xy_values_are_never_negative() {
-        //  * --------> (+x)
-        //  |
-        //  |
-        //  |
-        //  v
-        // (+y)
+    fn test_get_angle_returns_correct_value_around_origin_at_regular_rotational_increments() {
+        let origins = vec![
+            (0.0, 0.0), // origin
+            (6.66, -6.66), // Q1 (top-right)
+            (-6.66, 6.66), // Q2 (top-left)
+            (-6.66, 6.66), // Q3 (btm-left)
+            (6.66, 6.66), // Q4 (btm-right)
+        ];
 
-        let origin: (f32, f32) = (1.0, 1.0);
-        let mut coord: (f32, f32);
+        for origin in origins {
+            // TEST: 45deg increments
+            let coords_45deg_step = generate_coords_around_point_every_45_deg(&origin);
+            for (coord, expect) in coords_45deg_step {
+                let actual = get_angle(&origin, &coord);
+                println!(
+                    "coord: {:?}, expect: {:?}, actual: {:?}",
+                    coord, expect, actual
+                );
+                assert!(expect == actual);
+            }
 
-        coord = (origin.0 + 1.0, origin.1 + 0.0);
-        assert!(get_angle(&origin, &coord) == Some(0.0));
-        coord = (origin.0 + 1.0, origin.1 - 1.0);
-        assert!(get_angle(&origin, &coord) == Some(45.0));
-        coord = (origin.0 + 0.0, origin.1 - 1.0);
-        assert!(get_angle(&origin, &coord) == Some(90.0));
-        coord = (origin.0 - 1.0, origin.1 - 1.0);
-        assert!(get_angle(&origin, &coord) == Some(135.0));
-        coord = (origin.0 - 1.0, origin.1 + 0.0);
-        assert!(get_angle(&origin, &coord) == Some(180.0));
-        coord = (origin.0 - 1.0, origin.1 + 1.0);
-        assert!(get_angle(&origin, &coord) == Some(225.0));
-        coord = (origin.0 + 0.0, origin.1 + 1.0);
-        assert!(get_angle(&origin, &coord) == Some(270.0));
-        coord = (origin.0 + 1.0, origin.1 + 1.0);
-        assert!(get_angle(&origin, &coord) == Some(315.0));
+            // TEST: 60deg increments
+            let coords_60deg_step = generate_coords_around_point_every_60_deg(&origin);
+            for (coord, expect) in coords_60deg_step {
+                let actual = get_angle(&origin, &coord);
+                println!(
+                    "coord: {:?}, expect: {:?}, actual: {:?}",
+                    coord, expect, actual
+                );
+                assert!(expect == actual);
+            }
+        }
     }
 }
 
