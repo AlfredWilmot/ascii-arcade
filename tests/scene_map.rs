@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
 
-    use ascii_arcade::scene_map::*;
     use ascii_arcade::entity::Entity;
+    use ascii_arcade::scene_map::*;
 
     /// creates a vector of entities whose positions form a rectangular grid
     fn make_entity_grid(i: usize, j: usize) -> Vec<Entity> {
