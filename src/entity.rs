@@ -1,11 +1,7 @@
 use core::{f32, fmt};
-use std::collections::HashMap;
 use std::fmt::Debug;
 
 pub const BACKGROUND: char = ' ';
-
-/// defines a coord-Entity HashMap for basic spatial queries
-pub type EntityMap = HashMap<(u16, u16), Entity>;
 
 /// defines a vector of entities
 pub type Entities = Vec<Entity>;
