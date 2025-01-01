@@ -20,7 +20,7 @@ fn main() {
 
     // keep this up-to-date on every game-loop cycle so we can query the scene by coordinates
     let mut entities_now: Entities = Vec::new();
-    let mut entities_then: Entities = Vec::new();
+    let mut entities_then: Entities;
 
     // player to be controlled by user
     let mut player: Entity = Entity::default();
