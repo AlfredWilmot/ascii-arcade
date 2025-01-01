@@ -1,6 +1,7 @@
 use crate::collision_geometry::{get_angle, Circle, ORIENTATION};
-use crate::entity::{Entities, Entity};
+use crate::entity::{Entities, Entity, EntityType};
 use crate::physics;
+use crate::scene::debug_print;
 
 pub fn resolve(entities: &mut Entities) {
     pair_wise_comparison(entities, basic_collision_handling);
@@ -51,6 +52,9 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         // where is the other entity relative to us?
         let direction_of_target: ORIENTATION;
         if let Some(angle) = &get_angle(&me.pos, &thee.pos) {
+            if me.id == EntityType::Player {
+                debug_print(format!("target: {:.2}", angle), 1);
+            }
             if let Some(val) = ORIENTATION::from_angle(angle) {
                 direction_of_target = val;
             } else {
@@ -101,8 +105,11 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         // are we travelling towards the other entity?
         let direction_of_travel: ORIENTATION;
         let origin: (f32, f32) = (0.0, 0.0);
-        if let Some(vel) = &get_angle(&origin, &me.vel) {
-            if let Some(direction) = ORIENTATION::from_angle(vel) {
+        if let Some(angle) = &get_angle(&origin, &me.vel) {
+            if me.id == EntityType::Player {
+                debug_print(format!("travel: {:.2}", angle), 2);
+            }
+            if let Some(direction) = ORIENTATION::from_angle(angle) {
                 direction_of_travel = direction;
             } else {
                 return;
