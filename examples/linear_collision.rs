@@ -72,7 +72,10 @@ fn main() {
 
         // resolve physics calculations
         for entity in entities_now.iter_mut() {
-            physics::update(entity, dt);
+            // static entities shouldn't move!
+            if entity.id != EntityType::Static {
+                physics::update(entity, dt);
+            }
             physics::apply_constraints(entity);
         }
 
