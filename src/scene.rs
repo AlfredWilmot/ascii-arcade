@@ -40,11 +40,26 @@ pub fn debug_print<T: Debug>(text: T, offset: u16) {
     );
 }
 
+/// converts a tuple of floating point values to the equivalent terminal coordinate value.
+/// the rendering plane is as follows and our origin starts at (1,1):
+///
+//   (1,1) --> (+x)
+//   |
+//   v
+//  (+y)
+//
+pub fn term_coords(pos: (f32, f32)) -> (u16, u16) {
+    let (x, y) = pos;
+    let x = if x.round() <= 0.0 { 1.0 } else { x };
+    let y = if y.round() <= 0.0 { 1.0 } else { y };
+    (x.round() as u16, y.round() as u16)
+}
+
 /// display all the entities in the scene
 pub fn render(then: &Vec<Entity>, now: &Vec<Entity>) {
     for (old, new) in iter::zip(then, now) {
-        let (x0, y0) = old.coordinates();
-        let (x1, y1) = new.coordinates();
+        let (x0, y0) = term_coords(old.pos);
+        let (x1, y1) = term_coords(new.pos);
 
         // clear the old position if the new position has changed
         if (x0, y0) != (x1, y1) {
