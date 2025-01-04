@@ -3,13 +3,22 @@
 # exit immediately if any stage fails
 set -e
 
+_header() {
+  echo "# ---------------------- #"
+  echo "# $*"
+  echo "# ---------------------- #"
+}
+
 # standardize formatting across all *.rs files
+_header "Formatting *.rs files"
 cargo fmt --all
 
 # run all unit-tests
+_header "Running unit-tests"
 cargo test --all-features --workspace
 
 # run linter
+_header "Running linters"
 cargo clippy --all-targets --all-features --workspace -- -D warnings
 
 
