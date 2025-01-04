@@ -73,3 +73,18 @@ impl fmt::Display for Entity {
         }
     }
 }
+
+#[derive(Clone, Debug)]
+/// Represents a collection of entities that are treated as a single larger entity
+pub struct RigidBody {
+    pub parts: Entities,
+}
+
+impl fmt::Display for RigidBody {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        for entity in self.parts.iter() {
+            write!(f, "{}", entity)?
+        }
+        Ok(())
+    }
+}

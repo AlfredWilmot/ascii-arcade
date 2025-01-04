@@ -26,12 +26,6 @@ fn main() {
     };
     entities_now.push(player);
 
-    // copies of this entity are created when LMB is pressed
-    let mut spawned = Entity {
-        id: EntityType::Npc,
-        ..Default::default()
-    };
-
     //
     // GAME LOOP
     //
@@ -58,9 +52,13 @@ fn main() {
             Cmd::DEBUG(key) => {
                 scene::debug_print(key, 1);
             }
-            Cmd::SPAWN(x, y) => {
-                spawned.pos = (x as f32, y as f32);
-                entities_now.push(spawned.clone());
+            // spawn an entity of some type at some location
+            Cmd::SPAWN(x, y, id) => {
+                entities_now.push(Entity {
+                    pos: (x as f32, y as f32),
+                    id,
+                    ..Default::default()
+                });
             }
         }
 
