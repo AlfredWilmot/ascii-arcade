@@ -54,16 +54,6 @@ impl Default for Entity {
     }
 }
 
-impl Entity {
-    /// returns the integer coordinates of the entity in space
-    pub fn coordinates(&self) -> (u16, u16) {
-        let (x, y) = self.pos;
-        let x = if x.round() <= 0.0 { 1.0 } else { x };
-        let y = if y.round() <= 0.0 { 1.0 } else { y };
-        (x.round() as u16, y.round() as u16)
-    }
-}
-
 /// The way the entity is displayed depends on its state
 impl fmt::Display for Entity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
