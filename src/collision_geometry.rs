@@ -161,28 +161,24 @@ impl Circle<'_> {
     }
 }
 
-pub struct Rectangle<'a> {
-    /// A point that is at the rectangle's geometric center.
-    /// The distance between this point and the left/right sides are identical,
-    /// and the distance between this point and the top/bottom sides are identical.
+pub struct Square<'a> {
+    /// A point that is at the geometric center.
     /// (See http://enwp.org/centroid)
     centroid: &'a (f32, f32),
 
-    /// The Shortest distance from the centroid to the sides of the rectangle.
-    /// The first entry is the distance to the sides orthogonal to the x-axis,
-    /// and the second entry is the distance to the sides orthogonal to the y-axis.
+    /// The Shortest distance from the centroid to a side.
     /// (See http://enwp.org/apothem)
-    apothems: &'a (f32, f32),
+    apothem: &'a f32,
 }
 
-impl Rectangle<'_> {
+impl Square<'_> {
     /// creates a new circle using references to data owned by caller.
-    pub fn new<'a>(centroid: &'a (f32, f32), apothems: &'a (f32, f32)) -> Rectangle<'a> {
-        Rectangle { centroid, apothems }
+    pub fn new<'a>(centroid: &'a (f32, f32), apothem: &'a f32) -> Square<'a> {
+        Square { centroid, apothem }
     }
 
     /// determine whether two rectangles are intersecting.
-    pub fn intersects(&self, other: &Rectangle) -> bool {
+    pub fn intersects(&self, other: &Square) -> bool {
         let (dx, dy) = self.overlap_size(other);
 
         if dx == 0.0 || dy == 0.0 {
@@ -191,14 +187,14 @@ impl Rectangle<'_> {
         true
     }
 
-    /// returns the (length, width) of the Rectangle that would be formed
-    /// from the overlapping area between this Rectangle and some other Rectangle.
-    pub fn overlap_size(&self, other: &Rectangle) -> (f32, f32) {
+    /// returns the (length, width) of the rectangle that would be formed
+    /// from the overlapping area between this Square and some other Square.
+    pub fn overlap_size(&self, other: &Square) -> (f32, f32) {
         let dx = (self.centroid.0 - other.centroid.0).abs();
         let dy = (self.centroid.1 - other.centroid.1).abs();
 
-        let x_overlap = self.apothems.0 + other.apothems.0 - dx;
-        let y_overlap = self.apothems.1 + other.apothems.1 - dy;
+        let x_overlap = self.apothem + other.apothem - dx;
+        let y_overlap = self.apothem + other.apothem - dy;
 
         if x_overlap <= 0.0 || y_overlap <= 0.0 {
             return (0.0, 0.0);

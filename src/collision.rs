@@ -1,4 +1,4 @@
-use crate::collision_geometry::{get_angle, Rectangle, ORIENTATION};
+use crate::collision_geometry::{get_angle, Square, ORIENTATION};
 use crate::entity::{Entities, Entity};
 use crate::physics;
 
@@ -44,10 +44,8 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
     // (ASSUME ON CURRENT TIME-STEP AS INTERSECTION HAS ALREADY HAPPENED)
 
     // We're within each other's hit radii, but how should we characterize the collision?
-    let my_apothems: (f32, f32) = (me.hit_radius, me.hit_radius);
-    let thy_apothems: (f32, f32) = (thee.hit_radius, me.hit_radius);
-    let my_hitbox = Rectangle::new(&me.pos, &my_apothems);
-    let thy_hitbox = Rectangle::new(&thee.pos, &thy_apothems);
+    let my_hitbox = Square::new(&me.pos, &me.hit_radius);
+    let thy_hitbox = Square::new(&thee.pos, &thee.hit_radius);
 
     if my_hitbox.intersects(&thy_hitbox) {
         // where is the other entity relative to us?

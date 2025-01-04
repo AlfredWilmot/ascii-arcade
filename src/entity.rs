@@ -19,7 +19,7 @@ pub enum EntityType {
     #[default]
     Npc,
     Player,
-    InanimateObject,
+    Static,
 }
 
 #[derive(Clone, Debug)]
@@ -69,7 +69,7 @@ impl fmt::Display for Entity {
                 EntityState::Dead => write!(f, "\x1b[43m▀\x1b[0m"),
                 EntityState::Hidden => write!(f, "{}", BACKGROUND),
             },
-            EntityType::InanimateObject => write!(f, "{}", BACKGROUND),
+            EntityType::Static => write!(f, "\x1b[47m \x1b[0m"),
         }
     }
 }

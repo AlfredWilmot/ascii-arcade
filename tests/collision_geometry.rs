@@ -77,17 +77,17 @@ mod tests_rectangle {
     #[test]
     fn test_correct_rectangle_overlap() {
         // all other rectangles are compared against this one
-        let rect_ref = Rectangle::new(&(0.0, 0.0), &(1.0, 1.0));
+        let rect_ref = Square::new(&(0.0, 0.0), &1.0);
 
         // rectangles to compare against the reference one
-        let rect_right = Rectangle::new(&(1.0, 0.0), &(1.0, 1.0));
-        let rect_top_right = Rectangle::new(&(1.0, -1.0), &(1.0, 1.0));
-        let rect_top = Rectangle::new(&(0.0, -1.0), &(1.0, 1.0));
-        let rect_top_left = Rectangle::new(&(-1.0, -1.0), &(1.0, 1.0));
-        let rect_left = Rectangle::new(&(-1.0, 0.0), &(1.0, 1.0));
-        let rect_btm_left = Rectangle::new(&(-1.0, 1.0), &(1.0, 1.0));
-        let rect_btm = Rectangle::new(&(0.0, 1.0), &(1.0, 1.0));
-        let rect_btm_right = Rectangle::new(&(1.0, 1.0), &(1.0, 1.0));
+        let rect_right = Square::new(&(1.0, 0.0), &1.0);
+        let rect_top_right = Square::new(&(1.0, -1.0), &1.0);
+        let rect_top = Square::new(&(0.0, -1.0), &1.0);
+        let rect_top_left = Square::new(&(-1.0, -1.0), &1.0);
+        let rect_left = Square::new(&(-1.0, 0.0), &1.0);
+        let rect_btm_left = Square::new(&(-1.0, 1.0), &1.0);
+        let rect_btm = Square::new(&(0.0, 1.0), &1.0);
+        let rect_btm_right = Square::new(&(1.0, 1.0), &1.0);
 
         // is the overlap of each rectangle with the reference one as exptected?
         assert!(rect_ref.overlap_size(&rect_right) == (1.0, 2.0));

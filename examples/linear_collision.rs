@@ -1,9 +1,6 @@
-use ascii_arcade::collision;
 use ascii_arcade::entity::{Entities, Entity, EntityType};
-use ascii_arcade::physics;
-use ascii_arcade::scene;
-use ascii_arcade::user_input;
 use ascii_arcade::user_input::Cmd;
+use ascii_arcade::{collision, physics, scene, user_input};
 use std::thread;
 use std::time::Duration;
 
