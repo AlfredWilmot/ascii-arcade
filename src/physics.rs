@@ -12,10 +12,13 @@ const MAX_ACC: f32 = 1000.0;
 /// x1 = x0 + vt + 0.5at^2
 /// v1 = v0 + at
 pub fn update(ent: &mut Entity, dt: f32) {
+    // determine entity motion
     ent.vel.0 += ent.acc.0 * dt;
     ent.vel.1 += ent.acc.1 * dt;
     ent.pos.0 += ent.vel.0 * dt + 0.5 * ent.acc.0 * dt * dt;
     ent.pos.1 += ent.vel.1 * dt + 0.5 * ent.acc.1 * dt * dt;
+    // "consume" the applied forces
+    ent.acc = (0.0, 0.0);
 }
 
 /// calculate resultant velocity of e1 when colliding with e2, from ...
