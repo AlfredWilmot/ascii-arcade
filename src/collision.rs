@@ -1,3 +1,5 @@
+use core::f32;
+
 use crate::collision_geometry::{get_angle, Square, ORIENTATION};
 use crate::entity::{collision_calc, Entities, Entity};
 
@@ -52,52 +54,19 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         if let Some(angle) = &get_angle(&me.pos, &thee.pos) {
             if let Some(val) = ORIENTATION::from_angle(angle) {
                 direction_of_target = val;
+                // we're clipping the target, so let's adjust our position...
+                let overlap = my_hitbox.overlap_size(&thy_hitbox);
+                let repulsion_x = 100.0_f32.powf(overlap.0);
+                let repulsion_y = 100.0_f32.powf(overlap.1);
+                let x_dir = (angle * f32::consts::PI / 180.0).cos();
+                let y_dir = (angle * f32::consts::PI / 180.0).sin();
+                me.apply_force(x_dir * repulsion_x, y_dir * repulsion_y);
+                thee.apply_force(-x_dir * repulsion_x, -y_dir * repulsion_y);
             } else {
                 return;
             }
         } else {
             return;
-        }
-
-        // we're clipping the target, so let's adjust our position...
-        let overlap = my_hitbox.overlap_size(&thy_hitbox);
-        let repulsion_x = 10.0_f32.powf(overlap.0);
-        let repulsion_y = 10.0_f32.powf(overlap.1);
-
-        // TODO: USE DOT PRODUCT!!
-        match direction_of_target {
-            ORIENTATION::East => {
-                me.apply_force(-repulsion_x, 0.0);
-                thee.apply_force(repulsion_x, 0.0);
-            }
-            ORIENTATION::NorthEast => {
-                me.apply_force(-repulsion_x, repulsion_y);
-                thee.apply_force(repulsion_x, -repulsion_y);
-            }
-            ORIENTATION::North => {
-                me.apply_force(0.0, repulsion_y);
-                thee.apply_force(0.0, -repulsion_y);
-            }
-            ORIENTATION::NorthWest => {
-                me.apply_force(repulsion_x, repulsion_y);
-                thee.apply_force(-repulsion_x, -repulsion_y);
-            }
-            ORIENTATION::West => {
-                me.apply_force(repulsion_x, 0.0);
-                thee.apply_force(-repulsion_x, 0.0);
-            }
-            ORIENTATION::SouthWest => {
-                me.apply_force(repulsion_x, -repulsion_y);
-                thee.apply_force(-repulsion_x, repulsion_y);
-            }
-            ORIENTATION::South => {
-                me.apply_force(me.acc.0, -repulsion_y);
-                thee.apply_force(thee.acc.0, repulsion_y);
-            }
-            ORIENTATION::SouthEast => {
-                me.apply_force(-repulsion_x, -repulsion_y);
-                thee.apply_force(repulsion_x, repulsion_y);
-            }
         }
 
         // are we travelling towards the other entity?
