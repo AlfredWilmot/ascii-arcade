@@ -121,6 +121,20 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
     }
 }
 
+/// divides the unit-circle into the specified number of segements
+/// and maps the input angle to the closest segment angle
+///
+/// # Examples
+///
+/// ```rust
+/// use ascii_arcade::collision_geometry::map_angle;
+/// assert_eq!(map_angle(40.0, 8), 45.0);
+/// assert_eq!(map_angle(81.1, 8), 90.0);
+/// assert_eq!(map_angle(250.0, 4), 270.0);
+/// ```
+///
+pub fn map_angle(angle: f32, segment: usize) {}
+
 // -------------------------------------------------------------------------- //
 // --------------- INTERSECTION TESTS FOR DIFFERENT SHAPES ------------------ //
 // -------------------------------------------------------------------------- //
