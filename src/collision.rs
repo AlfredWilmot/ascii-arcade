@@ -1,6 +1,5 @@
 use crate::collision_geometry::{get_angle, Square, ORIENTATION};
-use crate::entity::{Entities, Entity};
-use crate::physics;
+use crate::entity::{collision_calc, Entities, Entity};
 
 pub fn resolve(entities: &mut Entities) {
     pair_wise_comparison(entities, basic_collision_handling);
@@ -62,8 +61,8 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
 
         // we're clipping the target, so let's adjust our position...
         let overlap = my_hitbox.overlap_size(&thy_hitbox);
-        let repulsion_x = 100.0_f32.powf(overlap.0);
-        let repulsion_y = 100.0_f32.powf(overlap.1);
+        let repulsion_x = 10.0_f32.powf(overlap.0);
+        let repulsion_y = 10.0_f32.powf(overlap.1);
 
         // TODO: USE DOT PRODUCT!!
         match direction_of_target {
@@ -115,7 +114,7 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         }
 
         // IF we collide, what will our resulting velocitues be along each axis?
-        let (my_vel, thy_vel) = physics::collision_calc(me, thee);
+        let (my_vel, thy_vel) = collision_calc(me, thee);
 
         // IF I am travelling towards the target, then consider this a COLLISION!
         // TODO: USE DOT-PRODUCT!!

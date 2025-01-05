@@ -1,4 +1,3 @@
-use crate::physics::collision_calc;
 use core::{f32, fmt};
 use std::cmp::PartialEq;
 use std::cmp::PartialOrd;
@@ -6,9 +5,10 @@ use std::fmt::Debug;
 
 pub const BACKGROUND: char = ' ';
 
+const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
 pub const DEFAULT_WINDOW: (u16, u16) = (50, 10); // defines the viewing area and physical boundary
 const MAX_VEL: f32 = 20.0;
-const MAX_ACC: f32 = 1000.0;
+const MAX_ACC: f32 = 100.0;
 
 /// defines a vector of entities
 pub type Entities = Vec<Entity>;
@@ -41,6 +41,7 @@ pub struct Entity {
     pub acc: (f32, f32),
     pub mass: f32,
     pub hit_radius: f32,
+    force: (f32, f32),
 
     // these affect both physics calculations and rendering behaviour
     pub state: EntityState,
@@ -48,9 +49,16 @@ pub struct Entity {
 
 impl Entity {
     pub fn new(id: EntityType, pos: (f32, f32)) -> Entity {
+        let mut mass: f32 = 1.0;
+
+        if id == EntityType::Player {
+            mass = 1.0;
+        }
+
         Entity {
             id,
             pos,
+            mass,
             ..Default::default()
         }
     }
@@ -65,6 +73,7 @@ impl Default for Entity {
             vel: (0.0, 0.0),
             acc: (0.0, 0.0),
             mass: 1.0,
+            force: (0.0, 0.0),
             hit_radius: 0.5,
         }
     }
@@ -74,14 +83,19 @@ impl Entity {
     /// apply a force vector to the associated entity to affect its acceleration vector
     /// F = m * a
     pub fn apply_force(&mut self, fx: f32, fy: f32) {
-        self.acc = (self.acc.0 + fx / self.mass, self.acc.1 + fy / self.mass)
+        self.force = (self.force.0 + fx, self.force.1 + fy);
+    }
+
+    pub fn accelerate(&mut self, ax: f32, ay: f32) {
+        self.acc = (ax, ay);
     }
 
     /// define a set-point velocity that the entity should try to get to
     pub fn target_vel(&mut self, vx: f32, vy: f32) {
-        // TODO: calculate the required force that needs to be applied
-        // to drive the entity to the desired velocity
-        self.vel = (vx, vy);
+        let ax = (vx - self.vel.0) / TIME_STEP;
+        let ay = (vy - self.vel.1) / TIME_STEP;
+        let m = self.mass;
+        self.force = (self.force.0 + ax * m, self.force.1 + ay * m);
     }
 
     /// define a set-point position that the entity should try to get to
@@ -91,16 +105,26 @@ impl Entity {
         self.pos = (x, y);
     }
 
-    /// update entity position using motion equations:
+    /// update entity position using motion equations and Newton's 2nd Law:
     /// x1 = x0 + vt + 0.5at^2
     /// v1 = v0 + at
-    pub fn update(&mut self, dt: f32) {
+    /// F = m * a
+    pub fn update(&mut self) {
+        // determine the resultant acceleration from the applied forces
+        let ax = self.force.0 / self.mass;
+        let ay = self.force.1 / self.mass;
+        self.acc = (self.acc.0 + ax, self.acc.1 + ay);
+
         // determine entity motion
-        self.vel.0 += self.acc.0 * dt;
-        self.vel.1 += self.acc.1 * dt;
-        self.pos.0 += self.vel.0 * dt + 0.5 * self.acc.0 * dt * dt;
-        self.pos.1 += self.vel.1 * dt + 0.5 * self.acc.1 * dt * dt;
+        self.vel.0 += self.acc.0 * TIME_STEP;
+        self.vel.1 += self.acc.1 * TIME_STEP;
+        self.pos.0 += self.vel.0 * TIME_STEP + 0.5 * self.acc.0 * TIME_STEP * TIME_STEP;
+        self.pos.1 += self.vel.1 * TIME_STEP + 0.5 * self.acc.1 * TIME_STEP * TIME_STEP;
+
         // "consume" the applied forces
+        self.force = (0.0, 0.0);
+
+        // reset acceleration for the next physics update
         self.acc = (0.0, 0.0);
 
         // apply constraints
@@ -188,4 +212,31 @@ fn constrain<T: PartialEq + PartialOrd>(val: &mut T, lower_limit: T, upper_limit
         return true;
     }
     false
+}
+
+/// calculate resultant velocity of e1 when colliding with e2, from ...
+/// >> conservation of kinetic energy:
+/// > > 0.5*m1*v_1a^2 + 0.5*m2*v_2a^2 = 0.5*m1*v_1b^2 + 0.5*m2*v_2b^2
+/// >> conservation of momentum :
+/// > > m1*v_1a + m2*v_2a = m1*v_1b + m2*v_2b
+///
+pub fn collision_calc(e1: &Entity, e2: &Entity) -> ((f32, f32), (f32, f32)) {
+    let v_1ax = e1.vel.0;
+    let v_2ax = e2.vel.0;
+    let m1 = e1.mass;
+
+    let v_1ay = e1.vel.1;
+    let v_2ay = e2.vel.1;
+    let m2 = e2.mass;
+
+    // resulting velocity of e1
+    let v_1bx = (v_1ax * (m1 - m2) + 2.0 * m2 * v_2ax) / (m1 + m2);
+    let v_1by = (v_1ay * (m1 - m2) + 2.0 * m2 * v_2ay) / (m1 + m2);
+
+    // resulting velocity of e2
+    let v_2bx = (v_2ax * (m2 - m1) + 2.0 * m1 * v_1ax) / (m2 + m1);
+    let v_2by = (v_2ay * (m2 - m1) + 2.0 * m1 * v_1ay) / (m2 + m1);
+
+    // return the resulting velocities of both entities along both axes
+    ((v_1bx, v_1by), (v_2bx, v_2by))
 }

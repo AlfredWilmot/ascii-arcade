@@ -54,7 +54,7 @@ fn main() {
 
         // apply global acceleration rules
         for entity in entities_now.iter_mut() {
-            entity.apply_force(0.0, 9.81);
+            entity.accelerate(0.0, 9.81);
         }
 
         // update rules based on collision state
@@ -62,7 +62,7 @@ fn main() {
 
         // resolve physics calculations
         for entity in entities_now.iter_mut() {
-            entity.update(dt);
+            entity.update();
         }
 
         // physics calculations done, render!
