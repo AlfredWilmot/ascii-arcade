@@ -1,8 +1,8 @@
-use core::{f32, fmt};
 use crate::physics::collision_calc;
-use std::fmt::Debug;
+use core::{f32, fmt};
 use std::cmp::PartialEq;
 use std::cmp::PartialOrd;
+use std::fmt::Debug;
 
 pub const BACKGROUND: char = ' ';
 
@@ -48,7 +48,11 @@ pub struct Entity {
 
 impl Entity {
     pub fn new(id: EntityType, pos: (f32, f32)) -> Entity {
-        Entity {id, pos, ..Default::default()}
+        Entity {
+            id,
+            pos,
+            ..Default::default()
+        }
     }
 }
 
@@ -67,21 +71,24 @@ impl Default for Entity {
 }
 
 impl Entity {
-
     /// apply a force vector to the associated entity to affect its acceleration vector
     /// F = m * a
     pub fn apply_force(&mut self, fx: f32, fy: f32) {
-        self.acc = (
-            self.acc.0 + fx / self.mass,
-            self.acc.1 + fy / self.mass,
-        )
+        self.acc = (self.acc.0 + fx / self.mass, self.acc.1 + fy / self.mass)
     }
 
     /// define a set-point velocity that the entity should try to get to
     pub fn target_vel(&mut self, vx: f32, vy: f32) {
         // TODO: calculate the required force that needs to be applied
-        // to drive the eneity to the desired velocity
+        // to drive the entity to the desired velocity
         self.vel = (vx, vy);
+    }
+
+    /// define a set-point position that the entity should try to get to
+    pub fn target_pos(&mut self, x: f32, y: f32) {
+        // TODO: calculate the required force that needs to be applied
+        // to drive the entity to the desired position
+        self.pos = (x, y);
     }
 
     /// update entity position using motion equations:
@@ -135,7 +142,6 @@ impl fmt::Display for RigidBody {
         Ok(())
     }
 }
-
 
 pub fn apply_constraints(ent: &mut Entity) {
     // limit velocity

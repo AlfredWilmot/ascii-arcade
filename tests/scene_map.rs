@@ -1,7 +1,7 @@
 #[cfg(test)]
 mod tests {
 
-    use ascii_arcade::entity::Entity;
+    use ascii_arcade::entity::{Entity, EntityType};
     use ascii_arcade::scene_map::*;
 
     /// creates a vector of entities whose positions form a rectangular grid
@@ -9,10 +9,7 @@ mod tests {
         let mut entities = Vec::new();
         for _i in 1..=i {
             for _j in 1..=j {
-                let entity = Entity {
-                    pos: (_i as f32, _j as f32),
-                    ..Default::default()
-                };
+                let entity = Entity::new(EntityType::Npc, (_i as f32, _j as f32));
                 entities.push(entity);
             }
         }
@@ -103,7 +100,7 @@ mod tests {
         // extract our hero from the scene, update their position (could be done by a physics
         // calculation, for instance), and then reinsert them into the scene.
         if let Some(mut goblin) = remove(&mut scene, 3, 2) {
-            goblin.pos = (4.0, 2.0);
+            goblin.target_pos(4.0, 2.0);
             insert(&mut scene, goblin);
         }
         // they should now  only be adjacent to two other entities

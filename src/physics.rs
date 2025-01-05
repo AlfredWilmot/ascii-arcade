@@ -1,6 +1,5 @@
 use crate::entity::Entity;
 
-
 /// calculate resultant velocity of e1 when colliding with e2, from ...
 /// >> conservation of kinetic energy:
 /// > > 0.5*m1*v_1a^2 + 0.5*m2*v_2a^2 = 0.5*m1*v_1b^2 + 0.5*m2*v_2b^2

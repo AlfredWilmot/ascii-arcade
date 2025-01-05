@@ -1,6 +1,6 @@
 use ascii_arcade::entity::{Entities, Entity, EntityType};
 use ascii_arcade::user_input::Cmd;
-use ascii_arcade::{collision, physics, scene, user_input};
+use ascii_arcade::{collision, scene, user_input};
 use std::thread;
 use std::time::Duration;
 
@@ -48,7 +48,7 @@ fn main() {
             }
             // spawn an entity of some type at some location
             Cmd::SPAWN(x, y, id) => {
-                entities_now.push(Entity::new(id,(x as f32, y as f32)));
+                entities_now.push(Entity::new(id, (x as f32, y as f32)));
             }
         }
 
