@@ -20,10 +20,7 @@ fn main() {
     let mut entities_then: Entities;
 
     // player to be controlled by user
-    let player = Entity {
-        id: EntityType::Player,
-        ..Default::default()
-    };
+    let player = Entity::new(EntityType::Player, (1.0, 1.0));
     entities_now.push(player);
 
     //
@@ -40,10 +37,7 @@ fn main() {
         // apply control signals to player
         match user_input::keyboard_control(&rx) {
             Cmd::MOVE(x, y) => {
-                // TODO: can only move laterally if ontop of something
-                player.vel.0 += 20.0 * x as f32;
-                // TODO: can only jump while ontop or adjacent to something
-                player.vel.1 += 10.0 * y as f32;
+                player.target_vel(20.0 * x as f32, 10.0 * y as f32);
             }
             Cmd::STOP => {}
             Cmd::EXIT => {
@@ -54,17 +48,13 @@ fn main() {
             }
             // spawn an entity of some type at some location
             Cmd::SPAWN(x, y, id) => {
-                entities_now.push(Entity {
-                    pos: (x as f32, y as f32),
-                    id,
-                    ..Default::default()
-                });
+                entities_now.push(Entity::new(id,(x as f32, y as f32)));
             }
         }
 
         // apply global acceleration rules
         for entity in entities_now.iter_mut() {
-            entity.acc = (0.0, 9.81);
+            entity.apply_force(0.0, 9.81);
         }
 
         // update rules based on collision state
@@ -72,14 +62,10 @@ fn main() {
 
         // resolve physics calculations
         for entity in entities_now.iter_mut() {
-            // static entities shouldn't move!
-            if entity.id != EntityType::Static {
-                physics::update(entity, dt);
-            }
-            physics::apply_constraints(entity);
+            entity.update(dt);
         }
 
-        // physics calcuations done, render!
+        // physics calculations done, render!
         scene::render(&entities_then, &entities_now);
         thread::sleep(Duration::from_secs_f32(dt));
     }

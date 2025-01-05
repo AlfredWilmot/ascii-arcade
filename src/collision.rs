@@ -64,38 +64,40 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         let overlap = my_hitbox.overlap_size(&thy_hitbox);
         let repulsion_x = 100.0_f32.powf(overlap.0);
         let repulsion_y = 100.0_f32.powf(overlap.1);
+
+        // TODO: USE DOT PRODUCT!!
         match direction_of_target {
             ORIENTATION::East => {
-                me.acc = (-repulsion_x, me.acc.1);
-                thee.acc = (repulsion_x, thee.acc.1);
+                me.apply_force(-repulsion_x, 0.0);
+                thee.apply_force(repulsion_x, 0.0);
             }
             ORIENTATION::NorthEast => {
-                me.acc = (-repulsion_x, repulsion_y);
-                thee.acc = (repulsion_x, -repulsion_y);
+                me.apply_force(-repulsion_x, repulsion_y);
+                thee.apply_force(repulsion_x, -repulsion_y);
             }
             ORIENTATION::North => {
-                me.acc = (me.acc.0, repulsion_y);
-                thee.acc = (thee.acc.0, -repulsion_y);
+                me.apply_force(0.0, repulsion_y);
+                thee.apply_force(0.0, -repulsion_y);
             }
             ORIENTATION::NorthWest => {
-                me.acc = (repulsion_x, repulsion_y);
-                thee.acc = (-repulsion_x, -repulsion_y);
+                me.apply_force(repulsion_x, repulsion_y);
+                thee.apply_force(-repulsion_x, -repulsion_y);
             }
             ORIENTATION::West => {
-                me.acc = (repulsion_x, me.acc.1);
-                thee.acc = (-repulsion_x, thee.acc.1);
+                me.apply_force(repulsion_x, 0.0);
+                thee.apply_force(-repulsion_x, 0.0);
             }
             ORIENTATION::SouthWest => {
-                me.acc = (repulsion_x, -repulsion_y);
-                thee.acc = (-repulsion_x, repulsion_y);
+                me.apply_force(repulsion_x, -repulsion_y);
+                thee.apply_force(-repulsion_x, repulsion_y);
             }
             ORIENTATION::South => {
-                me.acc = (me.acc.0, -repulsion_y);
-                thee.acc = (thee.acc.0, repulsion_y);
+                me.apply_force(me.acc.0, -repulsion_y);
+                thee.apply_force(thee.acc.0, repulsion_y);
             }
             ORIENTATION::SouthEast => {
-                me.acc = (-repulsion_x, -repulsion_y);
-                thee.acc = (repulsion_x, repulsion_y);
+                me.apply_force(-repulsion_x, -repulsion_y);
+                thee.apply_force(repulsion_x, repulsion_y);
             }
         }
 
@@ -115,23 +117,25 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         // IF we collide, what will our resulting velocitues be along each axis?
         let (my_vel, thy_vel) = physics::collision_calc(me, thee);
 
+
         // IF I am travelling towards the target, then consider this a COLLISION!
+        // TODO: USE DOT-PRODUCT!!
         if direction_of_travel == direction_of_target {
             match direction_of_travel {
                 ORIENTATION::East | ORIENTATION::West => {
-                    me.vel.0 = my_vel.0;
-                    thee.vel.0 = thy_vel.0;
+                    me.target_vel(my_vel.0, 0.0);
+                    thee.target_vel(thy_vel.0, 0.0);
                 }
                 ORIENTATION::North | ORIENTATION::South => {
-                    me.vel.1 = my_vel.1;
-                    thee.vel.1 = thy_vel.1;
+                    me.target_vel(0.0, my_vel.1);
+                    thee.target_vel(0.0, thy_vel.1);
                 }
                 ORIENTATION::NorthEast
                 | ORIENTATION::NorthWest
                 | ORIENTATION::SouthEast
                 | ORIENTATION::SouthWest => {
-                    me.vel = my_vel;
-                    thee.vel = thy_vel;
+                    me.target_vel(my_vel.0, my_vel.1);
+                    thee.target_vel(thy_vel.0, thy_vel.1);
                 }
             }
         }
