@@ -92,10 +92,9 @@ impl Entity {
 
     /// define a set-point velocity that the entity should try to get to
     pub fn target_vel(&mut self, vx: f32, vy: f32) {
-        let ax = (vx - self.vel.0) / TIME_STEP;
-        let ay = (vy - self.vel.1) / TIME_STEP;
-        let m = self.mass;
-        self.force = (self.force.0 + ax * m, self.force.1 + ay * m);
+        let fx = self.mass * (vx - self.vel.0) / TIME_STEP;
+        let fy = self.mass * (vy - self.vel.1) / TIME_STEP;
+        self.apply_force(fx, fy);
     }
 
     /// define a set-point position that the entity should try to get to
