@@ -121,8 +121,10 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
     }
 }
 
-/// divides the unit-circle into the specified number of segements
-/// and maps the input angle to the closest segment angle
+/// divides the unit-circle into the specified number of segments
+/// and maps the input angle to the closest segment angle.
+/// the angles are assumed to be in degrees
+/// (NOTE: degrees * 180 / pi = radians)
 ///
 /// # Examples
 ///
@@ -131,9 +133,32 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
 /// assert_eq!(map_angle(40.0, 8), 45.0);
 /// assert_eq!(map_angle(81.1, 8), 90.0);
 /// assert_eq!(map_angle(250.0, 4), 270.0);
+/// assert_eq!(map_angle(46.0, 4), 90.0);
 /// ```
 ///
-pub fn map_angle(angle: f32, segment: usize) {}
+pub fn map_angle(angle: f32, segment_count: usize) -> f32 {
+    // normalize the angle to fit into one rotation
+    let deg = angle % 360.0;
+
+    // determine the size of each segment
+    let step = 360.0 / (segment_count as f32 * 2.0);
+    let mut current_step = 0.0;
+
+    // map the angle to the nearest segment
+    let mut counter: usize = 1;
+    while current_step < 360.0 {
+        if (current_step..(current_step + step)).contains(&deg) {
+            if counter % 2 == 0 {
+                return current_step + step;
+            }
+            return current_step;
+        }
+        current_step += step;
+        counter += 1;
+    }
+
+    0.0
+}
 
 // -------------------------------------------------------------------------- //
 // --------------- INTERSECTION TESTS FOR DIFFERENT SHAPES ------------------ //
