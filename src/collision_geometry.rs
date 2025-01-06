@@ -4,48 +4,6 @@ use core::f32;
 // -------------------------------- ANGLES ---------------------------------- //
 // -------------------------------------------------------------------------- //
 
-/// defines discrete orientations with respect to a point
-#[derive(Debug, PartialEq, Eq)]
-pub enum ORIENTATION {
-    North,
-    NorthEast,
-    East,
-    SouthEast,
-    South,
-    SouthWest,
-    West,
-    NorthWest,
-}
-
-impl ORIENTATION {
-    /// returns the corresponding ORIENTATION label for a given angle
-    pub fn from_angle(deg: &f32) -> Option<ORIENTATION> {
-        // normalize the angle to fit into one rotation
-        let deg = *deg % 360.0;
-
-        // split the full rotation into 45 degree segements for each of the 8 possible orientations
-        if (0.0..22.5).contains(&deg) || (337.5..=360.0).contains(&deg) {
-            Some(ORIENTATION::East)
-        } else if (22.5..67.5).contains(&deg) {
-            Some(ORIENTATION::NorthEast)
-        } else if (67.5..112.5).contains(&deg) {
-            Some(ORIENTATION::North)
-        } else if (112.5..157.5).contains(&deg) {
-            Some(ORIENTATION::NorthWest)
-        } else if (157.5..202.5).contains(&deg) {
-            Some(ORIENTATION::West)
-        } else if (202.5..247.5).contains(&deg) {
-            Some(ORIENTATION::SouthWest)
-        } else if (247.5..292.5).contains(&deg) {
-            Some(ORIENTATION::South)
-        } else if (292.5..337.5).contains(&deg) {
-            Some(ORIENTATION::SouthEast)
-        } else {
-            None
-        }
-    }
-}
-
 // returns Some(angle) of the line connecting point 'a' to point 'b' in the xy plane.
 // returns None if the points are the same.
 // e.g.

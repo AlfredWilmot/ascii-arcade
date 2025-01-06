@@ -60,8 +60,8 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         //
         // we're clipping the target, so let's adjust our position...
         let overlap = my_hitbox.overlap_size(&thy_hitbox);
-        let repulsion_x = 100.0_f32.powf(overlap.0);
-        let repulsion_y = 100.0_f32.powf(overlap.1);
+        let repulsion_x = 1000.0_f32.powf(overlap.0);
+        let repulsion_y = 1000.0_f32.powf(overlap.1);
         let x_dir = (direction_of_target * f32::consts::PI / 180.0).cos();
         let y_dir = (direction_of_target * f32::consts::PI / 180.0).sin();
         me.apply_force(x_dir * repulsion_x, y_dir * repulsion_y);
