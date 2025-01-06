@@ -1,6 +1,6 @@
 use core::f32;
 
-use crate::collision_geometry::{get_angle, Square, ORIENTATION};
+use crate::collision_geometry::{get_angle, map_angle, Square};
 use crate::entity::{collision_calc, Entities, Entity};
 
 pub fn resolve(entities: &mut Entities) {
@@ -48,36 +48,30 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
     let my_hitbox = Square::new(&me.pos, &me.hit_radius);
     let thy_hitbox = Square::new(&thee.pos, &thee.hit_radius);
 
+    let direction_of_target: f32;
     if my_hitbox.intersects(&thy_hitbox) {
+        //
         // where is the other entity relative to us?
-        let direction_of_target: ORIENTATION;
         if let Some(angle) = &get_angle(&me.pos, &thee.pos) {
-            if let Some(val) = ORIENTATION::from_angle(angle) {
-                direction_of_target = val;
-                // we're clipping the target, so let's adjust our position...
-                let overlap = my_hitbox.overlap_size(&thy_hitbox);
-                let repulsion_x = 100.0_f32.powf(overlap.0);
-                let repulsion_y = 100.0_f32.powf(overlap.1);
-                let x_dir = (angle * f32::consts::PI / 180.0).cos();
-                let y_dir = (angle * f32::consts::PI / 180.0).sin();
-                me.apply_force(x_dir * repulsion_x, y_dir * repulsion_y);
-                thee.apply_force(-x_dir * repulsion_x, -y_dir * repulsion_y);
-            } else {
-                return;
-            }
+            direction_of_target = map_angle(*angle, 8);
         } else {
             return;
         }
-
+        //
+        // we're clipping the target, so let's adjust our position...
+        let overlap = my_hitbox.overlap_size(&thy_hitbox);
+        let repulsion_x = 100.0_f32.powf(overlap.0);
+        let repulsion_y = 100.0_f32.powf(overlap.1);
+        let x_dir = (direction_of_target * f32::consts::PI / 180.0).cos();
+        let y_dir = (direction_of_target * f32::consts::PI / 180.0).sin();
+        me.apply_force(x_dir * repulsion_x, y_dir * repulsion_y);
+        thee.apply_force(-x_dir * repulsion_x, -y_dir * repulsion_y);
+        //
         // are we travelling towards the other entity?
-        let direction_of_travel: ORIENTATION;
+        let direction_of_travel: f32;
         let origin: (f32, f32) = (0.0, 0.0);
         if let Some(angle) = &get_angle(&origin, &me.vel) {
-            if let Some(direction) = ORIENTATION::from_angle(angle) {
-                direction_of_travel = direction;
-            } else {
-                return;
-            }
+            direction_of_travel = map_angle(*angle, 8);
         } else {
             return;
         }
@@ -88,23 +82,10 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         // IF I am travelling towards the target, then consider this a COLLISION!
         // TODO: USE DOT-PRODUCT!!
         if direction_of_travel == direction_of_target {
-            match direction_of_travel {
-                ORIENTATION::East | ORIENTATION::West => {
-                    me.target_vel(my_vel.0, 0.0);
-                    thee.target_vel(thy_vel.0, 0.0);
-                }
-                ORIENTATION::North | ORIENTATION::South => {
-                    me.target_vel(0.0, my_vel.1);
-                    thee.target_vel(0.0, thy_vel.1);
-                }
-                ORIENTATION::NorthEast
-                | ORIENTATION::NorthWest
-                | ORIENTATION::SouthEast
-                | ORIENTATION::SouthWest => {
-                    me.target_vel(my_vel.0, my_vel.1);
-                    thee.target_vel(thy_vel.0, thy_vel.1);
-                }
-            }
+            let x_dir = (direction_of_travel * f32::consts::PI / 180.0).cos();
+            let y_dir = (direction_of_target * f32::consts::PI / 180.0).sin();
+            me.apply_force(x_dir * my_vel.0, y_dir * my_vel.1);
+            thee.apply_force(-x_dir * thy_vel.0, -y_dir * thy_vel.1);
         }
     }
 }
