@@ -80,12 +80,11 @@ fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
         let (my_vel, thy_vel) = collision_calc(me, thee);
 
         // IF I am travelling towards the target, then consider this a COLLISION!
-        // TODO: USE DOT-PRODUCT!!
         if direction_of_travel == direction_of_target {
-            let x_dir = (direction_of_travel * f32::consts::PI / 180.0).cos();
-            let y_dir = (direction_of_target * f32::consts::PI / 180.0).sin();
-            me.apply_force(x_dir * my_vel.0, y_dir * my_vel.1);
-            thee.apply_force(-x_dir * thy_vel.0, -y_dir * thy_vel.1);
+            let x_dir = (direction_of_travel * f32::consts::PI / 180.0).cos().abs();
+            let y_dir = (direction_of_target * f32::consts::PI / 180.0).sin().abs();
+            me.target_vel(x_dir * my_vel.0, y_dir * my_vel.1);
+            thee.target_vel(x_dir * thy_vel.0, y_dir * thy_vel.1);
         }
     }
 }
