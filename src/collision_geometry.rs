@@ -130,9 +130,22 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
 ///
 /// ```rust
 /// use ascii_arcade::collision_geometry::map_angle;
+/// assert_eq!(map_angle(350.0, 8), 0.0);
+/// assert_eq!(map_angle(10.0, 8), 0.0);
 /// assert_eq!(map_angle(40.0, 8), 45.0);
-/// assert_eq!(map_angle(81.1, 8), 90.0);
-/// assert_eq!(map_angle(250.0, 4), 270.0);
+/// assert_eq!(map_angle(50.0, 8), 45.0);
+/// assert_eq!(map_angle(80.0, 8), 90.0);
+/// assert_eq!(map_angle(100.0, 8), 90.0);
+/// assert_eq!(map_angle(120.0, 8), 135.0);
+/// assert_eq!(map_angle(140.0, 8), 135.0);
+/// assert_eq!(map_angle(170.0, 8), 180.0);
+/// assert_eq!(map_angle(190.0, 8), 180.0);
+/// assert_eq!(map_angle(220.0, 8), 225.0);
+/// assert_eq!(map_angle(230.0, 8), 225.0);
+/// assert_eq!(map_angle(260.0, 8), 270.0);
+/// assert_eq!(map_angle(280.0, 8), 270.0);
+/// assert_eq!(map_angle(310.0, 8), 315.0);
+/// assert_eq!(map_angle(320.0, 8), 315.0);
 /// assert_eq!(map_angle(46.0, 4), 90.0);
 /// ```
 ///
@@ -149,6 +162,9 @@ pub fn map_angle(angle: f32, segment_count: usize) -> f32 {
     while current_step < 360.0 {
         if (current_step..(current_step + step)).contains(&deg) {
             if counter % 2 == 0 {
+                if current_step + step == 360.0 {
+                    return 0.0;
+                }
                 return current_step + step;
             }
             return current_step;
