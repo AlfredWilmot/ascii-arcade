@@ -1,5 +1,3 @@
-pub mod collision;
-pub mod collision_geometry;
 pub mod entity;
 pub mod scene;
 pub mod scene_map;

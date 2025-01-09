@@ -1,3 +1,6 @@
+pub mod collision;
+pub mod collision_geometry;
+
 use core::{f32, fmt};
 use std::cmp::PartialEq;
 use std::cmp::PartialOrd;
@@ -8,7 +11,7 @@ pub const BACKGROUND: char = ' ';
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
 pub const DEFAULT_WINDOW: (u16, u16) = (50, 10); // defines the viewing area and physical boundary
 const MAX_VEL: f32 = 20.0;
-const MAX_ACC: f32 = 100.0;
+const MAX_ACC: f32 = 10000.0;
 
 /// defines a vector of entities
 pub type Entities = Vec<Entity>;
@@ -41,7 +44,8 @@ pub struct Entity {
     pub acc: (f32, f32),
     pub mass: f32,
     pub hit_radius: f32,
-    force: (f32, f32),
+    pub force: (f32, f32),
+    pub grounded: bool,
 
     // these affect both physics calculations and rendering behaviour
     pub state: EntityState,
@@ -75,6 +79,7 @@ impl Default for Entity {
             mass: 1.0,
             force: (0.0, 0.0),
             hit_radius: 0.5,
+            grounded: false,
         }
     }
 }
@@ -86,8 +91,11 @@ impl Entity {
         self.force = (self.force.0 + fx, self.force.1 + fy);
     }
 
-    pub fn accelerate(&mut self, ax: f32, ay: f32) {
-        self.acc = (ax, ay);
+    /// define a set-point acceleration that the entity should try to get to
+    pub fn target_acc(&mut self, ax: f32, ay: f32) {
+        let fx = self.mass * ax;
+        let fy = self.mass * ay;
+        self.apply_force(fx, fy);
     }
 
     /// define a set-point velocity that the entity should try to get to
@@ -110,11 +118,12 @@ impl Entity {
     /// F = m * a
     pub fn update(&mut self) {
         // determine the resultant acceleration from the applied forces
-        let ax = self.force.0 / self.mass;
-        let ay = self.force.1 / self.mass;
-        self.acc = (self.acc.0 + ax, self.acc.1 + ay);
+        // constant force means constant acceleration
+        self.acc.0 = self.force.0 / self.mass;
+        self.acc.1 = self.force.1 / self.mass;
 
         // determine entity motion
+        // constant velocity means no force is being applied
         self.vel.0 += self.acc.0 * TIME_STEP;
         self.vel.1 += self.acc.1 * TIME_STEP;
         self.pos.0 += self.vel.0 * TIME_STEP + 0.5 * self.acc.0 * TIME_STEP * TIME_STEP;
@@ -122,12 +131,10 @@ impl Entity {
 
         // "consume" the applied forces
         self.force = (0.0, 0.0);
-
-        // reset acceleration for the next physics update
-        self.acc = (0.0, 0.0);
+        self.grounded = false;
 
         // apply constraints
-        apply_constraints(self);
+        self.constrain();
     }
 }
 
@@ -166,43 +173,39 @@ impl fmt::Display for RigidBody {
     }
 }
 
-pub fn apply_constraints(ent: &mut Entity) {
-    // limit velocity
-    constrain(&mut ent.vel.0, -MAX_VEL, MAX_VEL);
-    constrain(&mut ent.vel.1, -MAX_VEL, MAX_VEL);
-    // limit acceleration
-    constrain(&mut ent.acc.0, -MAX_ACC, MAX_ACC);
-    constrain(&mut ent.acc.1, -MAX_ACC, MAX_ACC);
-
-    // limit position to window
-    let window = termion::terminal_size().unwrap_or(DEFAULT_WINDOW);
-
-    let mut wall = Entity {
-        mass: 1000.0,
-        ..Default::default()
-    };
-
-    if constrain(&mut ent.pos.0, 0.0_f32, (window.0 - 1) as f32) {
-        if ent.pos.0 == 0.0 {
-            wall.pos = (ent.pos.0 - ent.hit_radius, ent.pos.1)
-        } else {
-            wall.pos = (ent.pos.0 + ent.hit_radius, ent.pos.1)
+impl Entity {
+    fn constrain(&mut self) {
+        //
+        // limit velocity
+        constraint(&mut self.vel.0, -MAX_VEL, MAX_VEL);
+        constraint(&mut self.vel.1, -MAX_VEL, MAX_VEL);
+        //
+        // limit acceleration
+        constraint(&mut self.acc.0, -MAX_ACC, MAX_ACC);
+        constraint(&mut self.acc.1, -MAX_ACC, MAX_ACC);
+        //
+        // limit position to window
+        let window = termion::terminal_size().unwrap_or(DEFAULT_WINDOW);
+        if constraint(&mut self.pos.0, 0.0_f32, (window.0 - 1) as f32) {
+            //
+            // simulates a totally inelastic collision along the x-axis
+            self.vel.0 = 0.0;
+            self.apply_force(self.force.0, 0.0);
+            self.grounded = true;
         }
-        ent.vel.0 = collision_calc(ent, &wall).0 .0 * 0.5;
-    }
-    if constrain(&mut ent.pos.1, 0.0_f32, (window.1 - 1) as f32) {
-        if ent.pos.1 == 0.0 {
-            wall.pos = (ent.pos.0, ent.pos.1 - ent.hit_radius)
-        } else {
-            wall.pos = (ent.pos.0, ent.pos.1 + ent.hit_radius)
+        if constraint(&mut self.pos.1, 0.0_f32, (window.1 - 1) as f32) {
+            //
+            // simulates a totally inelastic collision along the xyaxis
+            self.vel.1 = 0.0;
+            self.apply_force(0.0, self.force.1);
+            self.grounded = true;
         }
-        ent.vel.1 = collision_calc(ent, &wall).0 .1 * 0.2;
     }
 }
 
 /// Applies constraints to the passed variable.
 /// Boolean return value indicates whether-or-not the variable was constrained.
-fn constrain<T: PartialEq + PartialOrd>(val: &mut T, lower_limit: T, upper_limit: T) -> bool {
+fn constraint<T: PartialEq + PartialOrd>(val: &mut T, lower_limit: T, upper_limit: T) -> bool {
     if *val >= upper_limit {
         *val = upper_limit;
         return true;
@@ -211,31 +214,4 @@ fn constrain<T: PartialEq + PartialOrd>(val: &mut T, lower_limit: T, upper_limit
         return true;
     }
     false
-}
-
-/// calculate resultant velocity of e1 when colliding with e2, from ...
-/// >> conservation of kinetic energy:
-/// > > 0.5*m1*v_1a^2 + 0.5*m2*v_2a^2 = 0.5*m1*v_1b^2 + 0.5*m2*v_2b^2
-/// >> conservation of momentum :
-/// > > m1*v_1a + m2*v_2a = m1*v_1b + m2*v_2b
-///
-pub fn collision_calc(e1: &Entity, e2: &Entity) -> ((f32, f32), (f32, f32)) {
-    let v_1ax = e1.vel.0;
-    let v_2ax = e2.vel.0;
-    let m1 = e1.mass;
-
-    let v_1ay = e1.vel.1;
-    let v_2ay = e2.vel.1;
-    let m2 = e2.mass;
-
-    // resulting velocity of e1
-    let v_1bx = (v_1ax * (m1 - m2) + 2.0 * m2 * v_2ax) / (m1 + m2);
-    let v_1by = (v_1ay * (m1 - m2) + 2.0 * m2 * v_2ay) / (m1 + m2);
-
-    // resulting velocity of e2
-    let v_2bx = (v_2ax * (m2 - m1) + 2.0 * m1 * v_1ax) / (m2 + m1);
-    let v_2by = (v_2ay * (m2 - m1) + 2.0 * m1 * v_1ay) / (m2 + m1);
-
-    // return the resulting velocities of both entities along both axes
-    ((v_1bx, v_1by), (v_2bx, v_2by))
 }

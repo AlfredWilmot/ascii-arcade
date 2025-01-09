@@ -1,6 +1,7 @@
-use ascii_arcade::entity::{Entities, Entity, EntityType};
+use ascii_arcade::entity::{collision, Entities, Entity, EntityType};
+use ascii_arcade::scene::debug_print;
 use ascii_arcade::user_input::Cmd;
-use ascii_arcade::{collision, scene, user_input};
+use ascii_arcade::{scene, user_input};
 use std::thread;
 use std::time::Duration;
 
@@ -37,7 +38,17 @@ fn main() {
         // apply control signals to player
         match user_input::keyboard_control(&rx) {
             Cmd::MOVE(x, y) => {
-                player.target_vel(20.0 * x as f32, 10.0 * y as f32);
+                // WIP
+                if x == 0 && y != 0 {
+                    // can only jump when on the ground
+                    if player.grounded {
+                        player.target_vel(player.vel.0, 10.0 * y as f32);
+                    }
+                } else if y == 0 && x != 0 {
+                    player.target_vel(20.0 * x as f32, player.vel.1);
+                } else {
+                    player.target_vel(20.0 * x as f32, 10.0 * y as f32);
+                }
             }
             Cmd::STOP => {}
             Cmd::EXIT => {
@@ -54,7 +65,14 @@ fn main() {
 
         // apply global acceleration rules
         for entity in entities_now.iter_mut() {
-            entity.accelerate(0.0, 9.81);
+            entity.target_acc(0.0, 9.81);
+            if entity.grounded {
+                // simulates fricion
+                entity.target_vel(entity.vel.0 * 0.9, entity.vel.1);
+            } else {
+                // simulates less friction when airborne
+                entity.target_vel(entity.vel.0 * 0.99, entity.vel.1);
+            }
         }
 
         // update rules based on collision state
@@ -62,6 +80,12 @@ fn main() {
 
         // resolve physics calculations
         for entity in entities_now.iter_mut() {
+            if entity.id == EntityType::Player {
+                debug_print(
+                    format!("force: ({:.2}, {:.2})", entity.force.0, entity.force.1),
+                    1,
+                );
+            }
             entity.update();
         }
 

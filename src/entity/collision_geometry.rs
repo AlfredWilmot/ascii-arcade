@@ -87,7 +87,7 @@ pub fn get_angle(a: &(f32, f32), b: &(f32, f32)) -> Option<f32> {
 /// # Examples
 ///
 /// ```rust
-/// use ascii_arcade::collision_geometry::map_angle;
+/// use ascii_arcade::entity::collision_geometry::map_angle;
 /// assert_eq!(map_angle(350.0, 8), 0.0);
 /// assert_eq!(map_angle(10.0, 8), 0.0);
 /// assert_eq!(map_angle(40.0, 8), 45.0);

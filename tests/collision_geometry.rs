@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests_angle {
-    use ascii_arcade::collision_geometry::*;
+    use ascii_arcade::entity::collision_geometry::*;
 
     fn generate_coords_around_point_every_45_deg(
         point: &(f32, f32),
@@ -72,7 +72,7 @@ mod tests_angle {
 
 #[cfg(test)]
 mod tests_rectangle {
-    use ascii_arcade::collision_geometry::*;
+    use ascii_arcade::entity::collision_geometry::*;
 
     #[test]
     fn test_correct_rectangle_overlap() {
