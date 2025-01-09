@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod tests {
+mod tests_scene_map {
 
     use ascii_arcade::entity::{Entity, EntityType};
     use ascii_arcade::scene_map::*;
