@@ -41,7 +41,7 @@ fn pair_wise_comparison(entities: &mut Entities, func: fn(&mut Entity, &mut Enti
 }
 
 /// TODO: unit-test this
-fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
+pub fn basic_collision_handling(me: &mut Entity, thee: &mut Entity) {
     // when is the projected collision going to occur?
     // (ASSUME ON CURRENT TIME-STEP AS INTERSECTION HAS ALREADY HAPPENED)
 
