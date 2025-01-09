@@ -11,7 +11,8 @@ pub const BACKGROUND: char = ' ';
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
 pub const DEFAULT_WINDOW: (u16, u16) = (50, 10); // defines the viewing area and physical boundary
 const MAX_VEL: f32 = 20.0;
-const MAX_ACC: f32 = 10000.0;
+const MAX_ACC: f32 = 100.0;
+const MAX_FORCE: f32 = 1000.0;
 
 /// defines a vector of entities
 pub type Entities = Vec<Entity>;
@@ -89,6 +90,8 @@ impl Entity {
     /// F = m * a
     pub fn apply_force(&mut self, fx: f32, fy: f32) {
         self.force = (self.force.0 + fx, self.force.1 + fy);
+        constraint(&mut self.force.0, -MAX_FORCE, MAX_FORCE);
+        constraint(&mut self.force.1, -MAX_FORCE, MAX_FORCE);
     }
 
     /// define a set-point acceleration that the entity should try to get to
@@ -190,14 +193,14 @@ impl Entity {
             //
             // simulates a totally inelastic collision along the x-axis
             self.vel.0 = 0.0;
-            self.apply_force(self.force.0, 0.0);
+            self.apply_force(-self.force.0, 0.0);
             self.grounded = true;
         }
         if constraint(&mut self.pos.1, 0.0_f32, (window.1 - 1) as f32) {
             //
             // simulates a totally inelastic collision along the xyaxis
             self.vel.1 = 0.0;
-            self.apply_force(0.0, self.force.1);
+            self.apply_force(0.0, -self.force.1);
             self.grounded = true;
         }
     }
