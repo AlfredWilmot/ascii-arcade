@@ -16,6 +16,7 @@ cargo fmt --all
 # run all unit-tests
 _header "Running unit-tests"
 cargo test --all-features --workspace
+cargo test --all-features --doc
 
 # run linter
 _header "Running linters"
