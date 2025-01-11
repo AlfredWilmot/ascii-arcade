@@ -1,15 +1,14 @@
 use core::f32;
 
 /// A geometric vector with a magnitude (length) and direction
-pub struct EuclidianVector{
+pub struct EuclidianVector {
     pub x: f32,
     pub y: f32,
 }
 
 impl EuclidianVector {
-
     pub fn new(x: f32, y: f32) -> EuclidianVector {
-        EuclidianVector{x, y}
+        EuclidianVector { x, y }
     }
 
     /// Returns the vector's magnitude
@@ -45,7 +44,10 @@ impl EuclidianVector {
     /// assert_eq!(a.unit().y, -1.0);
     /// ```
     pub fn unit(&self) -> EuclidianVector {
-        EuclidianVector { x: self.x / self.length(), y: self.y / self.length() }
+        EuclidianVector {
+            x: self.x / self.length(),
+            y: self.y / self.length(),
+        }
     }
 
     // Returns a scalar that is the extent two vectors are pointing in the same direction
@@ -55,4 +57,3 @@ impl EuclidianVector {
     //pub fn dot(&self, other) -> {
     //}
 }
-
