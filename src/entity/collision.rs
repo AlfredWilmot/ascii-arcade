@@ -3,6 +3,8 @@ use core::f32;
 use crate::entity::collision_geometry::Square;
 use crate::entity::{Entities, Entity};
 
+use super::vector::EuclidianVector;
+
 pub fn resolve(entities: &mut Entities) {
     pair_wise_comparison(entities);
 }
@@ -29,25 +31,39 @@ fn pair_wise_comparison(entities: &mut Entities) {
 }
 
 impl Entity {
-    /// TODO: unit-test this
+    /// Determines whether this entity is colliding with some other entity, and if so,
+    /// updates this entity with the forces experienced due to the change in velocity
+    /// resulting from the collision.
     pub fn handle_collision(&mut self, target: &Entity) {
-        // when is the projected collision going to occur?
-        // (ASSUME ON CURRENT TIME-STEP AS INTERSECTION HAS ALREADY HAPPENED)
-
-        // We're within each other's hit radii, but how should we characterize the collision?
+        //
+        // are our hitboxes intersecting?
         let my_hitbox = Square::new(&self.pos, &self.hit_radius);
         let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
-
         if my_hitbox.intersects(&thy_hitbox) {
-            // am I travelling towards the target, is the target travelling towards me?
+            //
+            // am I travelling towards the target?
+            let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
+            //
+            // is the target travelling towards me?
+            let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
+            //
+            // do either of us have velocity components directed towards the other?
+            if self.vel.dot(&me_to_you) > 0.0 || target.vel.dot(&you_to_me) > 0.0 {
+                let resultant_vel = collision_calc(
+                    EuclidianVector::new(
+                        me_to_you.x * self.vel.x,
+                        me_to_you.y * self.vel.y,
+                    ),
+                    self.mass,
+                    EuclidianVector::new(
+                        you_to_me.x * target.vel.x,
+                        you_to_me.y * target.vel.y,
+                    ),
+                    target.mass,
+                );
 
-            let resultant_vels = collision_calc(
-                (self.vel.x, self.vel.y),
-                self.mass,
-                (target.vel.x, target.vel.y),
-                target.mass,
-            );
-            self.target_vel(resultant_vels.0, resultant_vels.1);
+                self.target_vel(resultant_vel.x, resultant_vel.y);
+            }
         }
     }
 }
@@ -58,9 +74,9 @@ impl Entity {
 /// >> conservation of momentum :
 /// > > m1*v_1a + m2*v_2a = m1*v_1b + m2*v_2b
 ///
-fn collision_calc(va: (f32, f32), ma: f32, vb: (f32, f32), mb: f32) -> (f32, f32) {
-    (
-        (va.0 * (ma - mb) + 2.0 * mb * vb.0) / (ma + mb),
-        (va.1 * (ma - mb) + 2.0 * mb * vb.1) / (ma + mb),
+fn collision_calc(va: EuclidianVector, ma: f32, vb: EuclidianVector, mb: f32) -> EuclidianVector {
+    EuclidianVector::new(
+        (va.x * (ma - mb) + 2.0 * mb * vb.x) / (ma + mb),
+        (va.y * (ma - mb) + 2.0 * mb * vb.y) / (ma + mb),
     )
 }
