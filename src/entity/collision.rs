@@ -1,9 +1,8 @@
 use core::f32;
 
+use super::vector::EuclidianVector;
 use crate::entity::collision_geometry::Square;
 use crate::entity::{Entities, Entity};
-
-use super::vector::EuclidianVector;
 
 pub fn resolve(entities: &mut Entities) {
     pair_wise_comparison(entities);
@@ -50,12 +49,17 @@ impl Entity {
             // do either of us have velocity components directed towards the other?
             if self.vel.dot(&me_to_you) > 0.0 || target.vel.dot(&you_to_me) > 0.0 {
                 let resultant_vel = collision_calc(
-                    EuclidianVector::new(me_to_you.x * self.vel.x, me_to_you.y * self.vel.y),
-                    self.mass,
-                    EuclidianVector::new(you_to_me.x * target.vel.x, you_to_me.y * target.vel.y),
-                    target.mass,
+                    &EuclidianVector::new(
+                        me_to_you.x.abs() * self.vel.x,
+                        me_to_you.y.abs() * self.vel.y,
+                    ),
+                    &self.mass,
+                    &EuclidianVector::new(
+                        you_to_me.x.abs() * target.vel.x,
+                        you_to_me.y.abs() * target.vel.y,
+                    ),
+                    &target.mass,
                 );
-
                 self.target_vel(resultant_vel.x, resultant_vel.y);
             }
         }
@@ -68,7 +72,12 @@ impl Entity {
 /// >> conservation of momentum :
 /// > > m1*v_1a + m2*v_2a = m1*v_1b + m2*v_2b
 ///
-fn collision_calc(va: EuclidianVector, ma: f32, vb: EuclidianVector, mb: f32) -> EuclidianVector {
+pub fn collision_calc(
+    va: &EuclidianVector,
+    ma: &f32,
+    vb: &EuclidianVector,
+    mb: &f32,
+) -> EuclidianVector {
     EuclidianVector::new(
         (va.x * (ma - mb) + 2.0 * mb * vb.x) / (ma + mb),
         (va.y * (ma - mb) + 2.0 * mb * vb.y) / (ma + mb),

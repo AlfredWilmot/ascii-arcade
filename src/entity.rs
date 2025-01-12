@@ -14,7 +14,7 @@ pub const BACKGROUND: char = ' ';
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
 pub const DEFAULT_WINDOW: (u16, u16) = (50, 10); // defines the viewing area and physical boundary
 const MAX_VEL: f32 = 20.0;
-const MAX_ACC: f32 = 100.0;
+const MAX_ACC: f32 = 1000.0;
 const MAX_FORCE: f32 = 1000.0;
 
 /// defines a vector of entities

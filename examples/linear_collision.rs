@@ -1,5 +1,4 @@
 use ascii_arcade::entity::{collision, Entities, Entity, EntityType};
-use ascii_arcade::scene::debug_print;
 use ascii_arcade::user_input::Cmd;
 use ascii_arcade::{scene, user_input};
 use std::thread;
@@ -80,12 +79,6 @@ fn main() {
 
         // resolve physics calculations
         for entity in entities_now.iter_mut() {
-            if entity.id == EntityType::Player {
-                debug_print(
-                    format!("force: ({:.2}, {:.2})", entity.force.x, entity.force.y),
-                    1,
-                );
-            }
             entity.update();
         }
 

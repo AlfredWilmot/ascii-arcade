@@ -56,8 +56,8 @@ mod tests_collision_handling {
         a.update();
         b.update();
 
-        println!("{:?}", a.vel);
-        assert!(b.vel.x == 0.0);
+        println!("a_vel: {:?}, b_vel: {:?}", a.vel, b.vel);
         assert!(a.vel.x < 0.0);
+        assert!(b.vel.x == 0.0);
     }
 }
