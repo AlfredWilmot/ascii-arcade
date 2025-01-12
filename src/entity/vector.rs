@@ -112,18 +112,24 @@ impl EuclidianVector {
     /// ```rust
     /// use ascii_arcade::entity::vector::EuclidianVector;
     ///
-    /// let mut a = EuclidianVector::new(0.0, 1.0).unit();
-    /// let mut b = EuclidianVector::new(0.0, 1.0).unit();
+    /// let a = EuclidianVector::new(0.0, 1.0).unit();
+    /// let b = EuclidianVector::new(0.0, 1.0).unit();
     /// assert_eq!(a.dot(&b), a.magnitude());
     ///
-    /// a = EuclidianVector::new(1.0, 0.0).unit();
+    /// let a = EuclidianVector::new(1.0, 0.0).unit();
+    /// let b = EuclidianVector::new(0.0, 1.0).unit();
     /// assert_eq!(a.dot(&b), 0.0);
     ///
-    /// a = EuclidianVector::new(0.0, -1.0).unit();
+    /// let a = EuclidianVector::new(0.0, -1.0).unit();
+    /// let b = EuclidianVector::new(0.0, 1.0).unit();
     /// assert_eq!(a.dot(&b), -a.magnitude());
     ///
-    /// a = EuclidianVector::new(1.0, 1.0).unit();
-    /// b = EuclidianVector::new(1.0, 1.0).unit();
+    /// let a = EuclidianVector::new(-1.0, 0.0).unit();
+    /// let b = EuclidianVector::new(-1.0, 0.0).unit();
+    /// assert_eq!(a.dot(&b), a.magnitude());
+    ///
+    /// let a = EuclidianVector::new(1.0, 1.0).unit();
+    /// let b = EuclidianVector::new(1.0, 1.0).unit();
     /// assert_eq!(a.dot(&b), a.magnitude());
     /// ```
     pub fn dot(&self, other: &EuclidianVector) -> f32 {
