@@ -24,4 +24,40 @@ mod tests_collision_handling {
         assert!(ent_a.vel != null_vec);
         assert!(ent_a.acc != null_vec);
     }
+
+    #[test]
+    fn test_collision_while_moving_towards_static_target_on_the_right() {
+        let mut a = Entity::new(EntityType::Npc, (0.0, 0.0));
+        let mut b = Entity::new(EntityType::Npc, (1.0, 0.0));
+
+        a.target_vel(10.0, 0.0);
+        a.update();
+        b.update();
+        a.handle_collision(&b);
+        b.handle_collision(&a);
+        a.update();
+        b.update();
+
+        println!("{:?}", b.vel);
+        assert!(a.vel.x == 0.0);
+        assert!(b.vel.x > 0.0);
+    }
+
+    #[test]
+    fn test_collision_while_target_moves_towards_us_from_the_right() {
+        let mut a = Entity::new(EntityType::Npc, (0.0, 0.0));
+        let mut b = Entity::new(EntityType::Npc, (1.0, 0.0));
+
+        b.target_vel(-10.0, 0.0);
+        a.update();
+        b.update();
+        a.handle_collision(&b);
+        b.handle_collision(&a);
+        a.update();
+        b.update();
+
+        println!("{:?}", a.vel);
+        assert!(b.vel.x == 0.0);
+        assert!(a.vel.x < 0.0);
+    }
 }

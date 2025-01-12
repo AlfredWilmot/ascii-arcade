@@ -50,15 +50,9 @@ impl Entity {
             // do either of us have velocity components directed towards the other?
             if self.vel.dot(&me_to_you) > 0.0 || target.vel.dot(&you_to_me) > 0.0 {
                 let resultant_vel = collision_calc(
-                    EuclidianVector::new(
-                        me_to_you.x * self.vel.x,
-                        me_to_you.y * self.vel.y,
-                    ),
+                    EuclidianVector::new(me_to_you.x * self.vel.x, me_to_you.y * self.vel.y),
                     self.mass,
-                    EuclidianVector::new(
-                        you_to_me.x * target.vel.x,
-                        you_to_me.y * target.vel.y,
-                    ),
+                    EuclidianVector::new(you_to_me.x * target.vel.x, you_to_me.y * target.vel.y),
                     target.mass,
                 );
 
