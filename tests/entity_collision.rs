@@ -20,7 +20,4 @@ mod tests_collision_handling {
         assert!(ent_a.acc == expect_acc);
         //TODO// assert!(ent_a.pos== expect_pos);
     }
-
-    #[test]
-    fn test_force_change_due_to_velocity_change_during_collision() {}
 }
