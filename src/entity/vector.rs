@@ -1,4 +1,5 @@
 /// A geometric vector with a magnitude and direction
+#[derive(Clone, Debug, PartialEq)]
 pub struct EuclidianVector {
     pub x: f32,
     pub y: f32,

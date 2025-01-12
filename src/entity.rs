@@ -1,10 +1,13 @@
 pub mod collision;
 pub mod collision_geometry;
+pub mod vector;
 
 use core::{f32, fmt};
 use std::cmp::PartialEq;
 use std::cmp::PartialOrd;
 use std::fmt::Debug;
+
+use vector::EuclidianVector;
 
 pub const BACKGROUND: char = ' ';
 
@@ -41,11 +44,11 @@ pub struct Entity {
 
     // these drive physics calculations
     pub pos: (f32, f32),
-    pub vel: (f32, f32),
-    pub acc: (f32, f32),
+    pub vel: EuclidianVector,
+    pub acc: EuclidianVector,
     pub mass: f32,
     pub hit_radius: f32,
-    pub force: (f32, f32),
+    pub force: EuclidianVector,
     pub grounded: bool,
 
     // these affect both physics calculations and rendering behaviour
@@ -75,10 +78,10 @@ impl Default for Entity {
             id: EntityType::Npc,
             state: EntityState::Alive,
             pos: (0.0, 0.0),
-            vel: (0.0, 0.0),
-            acc: (0.0, 0.0),
+            vel: EuclidianVector::new(0.0, 0.0),
+            acc: EuclidianVector::new(0.0, 0.0),
             mass: 1.0,
-            force: (0.0, 0.0),
+            force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
         }
@@ -89,9 +92,10 @@ impl Entity {
     /// apply a force vector to the associated entity to affect its acceleration vector
     /// F = m * a
     pub fn apply_force(&mut self, fx: f32, fy: f32) {
-        self.force = (self.force.0 + fx, self.force.1 + fy);
-        constraint(&mut self.force.0, -MAX_FORCE, MAX_FORCE);
-        constraint(&mut self.force.1, -MAX_FORCE, MAX_FORCE);
+        self.force.x += fx;
+        self.force.y += fy;
+        constraint(&mut self.force.x, -MAX_FORCE, MAX_FORCE);
+        constraint(&mut self.force.y, -MAX_FORCE, MAX_FORCE);
     }
 
     /// define a set-point acceleration that the entity should try to get to
@@ -103,8 +107,8 @@ impl Entity {
 
     /// define a set-point velocity that the entity should try to get to
     pub fn target_vel(&mut self, vx: f32, vy: f32) {
-        let fx = self.mass * (vx - self.vel.0) / TIME_STEP;
-        let fy = self.mass * (vy - self.vel.1) / TIME_STEP;
+        let fx = self.mass * (vx - self.vel.x) / TIME_STEP;
+        let fy = self.mass * (vy - self.vel.y) / TIME_STEP;
         self.apply_force(fx, fy);
     }
 
@@ -122,18 +126,18 @@ impl Entity {
     pub fn update(&mut self) {
         // determine the resultant acceleration from the applied forces
         // constant force means constant acceleration
-        self.acc.0 = self.force.0 / self.mass;
-        self.acc.1 = self.force.1 / self.mass;
+        self.acc.x = self.force.x / self.mass;
+        self.acc.y = self.force.y / self.mass;
 
         // determine entity motion
         // constant velocity means no force is being applied
-        self.vel.0 += self.acc.0 * TIME_STEP;
-        self.vel.1 += self.acc.1 * TIME_STEP;
-        self.pos.0 += self.vel.0 * TIME_STEP + 0.5 * self.acc.0 * TIME_STEP * TIME_STEP;
-        self.pos.1 += self.vel.1 * TIME_STEP + 0.5 * self.acc.1 * TIME_STEP * TIME_STEP;
+        self.vel.x += self.acc.x * TIME_STEP;
+        self.vel.y += self.acc.y * TIME_STEP;
+        self.pos.0 += self.vel.x * TIME_STEP + 0.5 * self.acc.x * TIME_STEP * TIME_STEP;
+        self.pos.1 += self.vel.y * TIME_STEP + 0.5 * self.acc.y * TIME_STEP * TIME_STEP;
 
         // "consume" the applied forces
-        self.force = (0.0, 0.0);
+        self.force = EuclidianVector::new(0.0, 0.0);
         self.grounded = false;
 
         // apply constraints
@@ -180,27 +184,27 @@ impl Entity {
     fn constrain(&mut self) {
         //
         // limit velocity
-        constraint(&mut self.vel.0, -MAX_VEL, MAX_VEL);
-        constraint(&mut self.vel.1, -MAX_VEL, MAX_VEL);
+        constraint(&mut self.vel.x, -MAX_VEL, MAX_VEL);
+        constraint(&mut self.vel.y, -MAX_VEL, MAX_VEL);
         //
         // limit acceleration
-        constraint(&mut self.acc.0, -MAX_ACC, MAX_ACC);
-        constraint(&mut self.acc.1, -MAX_ACC, MAX_ACC);
+        constraint(&mut self.acc.x, -MAX_ACC, MAX_ACC);
+        constraint(&mut self.acc.y, -MAX_ACC, MAX_ACC);
         //
         // limit position to window
         let window = termion::terminal_size().unwrap_or(DEFAULT_WINDOW);
         if constraint(&mut self.pos.0, 0.0_f32, (window.0 - 1) as f32) {
             //
             // simulates a totally inelastic collision along the x-axis
-            self.vel.0 = 0.0;
-            self.apply_force(-self.force.0, 0.0);
+            self.vel.x = 0.0;
+            self.apply_force(-self.force.x, 0.0);
             self.grounded = true;
         }
         if constraint(&mut self.pos.1, 0.0_f32, (window.1 - 1) as f32) {
             //
             // simulates a totally inelastic collision along the xyaxis
-            self.vel.1 = 0.0;
-            self.apply_force(0.0, -self.force.1);
+            self.vel.y = 0.0;
+            self.apply_force(0.0, -self.force.y);
             self.grounded = true;
         }
     }

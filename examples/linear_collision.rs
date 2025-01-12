@@ -42,10 +42,10 @@ fn main() {
                 if x == 0 && y != 0 {
                     // can only jump when on the ground
                     if player.grounded {
-                        player.target_vel(player.vel.0, 10.0 * y as f32);
+                        player.target_vel(player.vel.x, 10.0 * y as f32);
                     }
                 } else if y == 0 && x != 0 {
-                    player.target_vel(20.0 * x as f32, player.vel.1);
+                    player.target_vel(20.0 * x as f32, player.vel.y);
                 } else {
                     player.target_vel(20.0 * x as f32, 10.0 * y as f32);
                 }
@@ -68,10 +68,10 @@ fn main() {
             entity.target_acc(0.0, 9.81);
             if entity.grounded {
                 // simulates fricion
-                entity.target_vel(entity.vel.0 * 0.9, entity.vel.1);
+                entity.target_vel(entity.vel.x * 0.9, entity.vel.y);
             } else {
                 // simulates less friction when airborne
-                entity.target_vel(entity.vel.0 * 0.99, entity.vel.1);
+                entity.target_vel(entity.vel.x * 0.99, entity.vel.y);
             }
         }
 
@@ -82,7 +82,7 @@ fn main() {
         for entity in entities_now.iter_mut() {
             if entity.id == EntityType::Player {
                 debug_print(
-                    format!("force: ({:.2}, {:.2})", entity.force.0, entity.force.1),
+                    format!("force: ({:.2}, {:.2})", entity.force.x, entity.force.y),
                     1,
                 );
             }
