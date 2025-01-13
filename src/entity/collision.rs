@@ -38,30 +38,27 @@ impl Entity {
         // are our hitboxes intersecting?
         let my_hitbox = Square::new(&self.pos, &self.hit_radius);
         let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
-        if my_hitbox.intersects(&thy_hitbox) {
-            //
-            // am I travelling towards the target?
-            let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
-            //
-            // is the target travelling towards me?
-            let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
-            //
-            // do either of us have velocity components directed towards the other?
-            if self.vel.dot(&me_to_you) > 0.0 || target.vel.dot(&you_to_me) > 0.0 {
-                let resultant_vel = collision_calc(
-                    &EuclidianVector::new(
-                        me_to_you.x.abs() * self.vel.x,
-                        me_to_you.y.abs() * self.vel.y,
-                    ),
-                    &self.mass,
-                    &EuclidianVector::new(
-                        you_to_me.x.abs() * target.vel.x,
-                        you_to_me.y.abs() * target.vel.y,
-                    ),
-                    &target.mass,
-                );
-                self.target_vel(resultant_vel.x, resultant_vel.y);
-            }
+        if !my_hitbox.intersects(&thy_hitbox) {
+            return;
+        }
+        let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
+        let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
+        //
+        // do either of us have velocity components directed towards the other?
+        if self.vel.dot(&me_to_you) > 0.0 || target.vel.dot(&you_to_me) > 0.0 {
+            let resultant_vel = collision_calc(
+                &EuclidianVector::new(
+                    me_to_you.x.abs() * self.vel.x,
+                    me_to_you.y.abs() * self.vel.y,
+                ),
+                &self.mass,
+                &EuclidianVector::new(
+                    you_to_me.x.abs() * target.vel.x,
+                    you_to_me.y.abs() * target.vel.y,
+                ),
+                &target.mass,
+            );
+            self.target_vel(resultant_vel.x, resultant_vel.y);
         }
     }
 }
