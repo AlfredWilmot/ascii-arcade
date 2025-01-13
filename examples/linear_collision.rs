@@ -1,6 +1,8 @@
 use ascii_arcade::entity::{collision, Entities, Entity, EntityType};
+use ascii_arcade::scene::debug_print;
 use ascii_arcade::user_input::Cmd;
 use ascii_arcade::{scene, user_input};
+use std::ops::BitXor;
 use std::thread;
 use std::time::Duration;
 
@@ -10,6 +12,7 @@ fn main() {
     //
     // INITIALISATION
     //
+    let mut debug_mode: bool = false;
 
     // keep the RawTerminal in scope until we exit the game
     let mut _stdout = scene::init();
@@ -53,8 +56,9 @@ fn main() {
             Cmd::EXIT => {
                 break 'game;
             }
-            Cmd::DEBUG(key) => {
-                scene::debug_print(key, 1);
+            Cmd::DEBUG(_) => {
+                //scene::debug_print(key, 1);
+                debug_mode = debug_mode.bitxor(true);
             }
             // spawn an entity of some type at some location
             Cmd::SPAWN(x, y, id) => {
@@ -79,7 +83,27 @@ fn main() {
 
         // resolve physics calculations
         for entity in entities_now.iter_mut() {
+            if debug_mode && entity.id == EntityType::Player {
+                debug_print(
+                    format!("force: ({:.1}, {:.1}) ", entity.force.x, entity.force.y),
+                    1,
+                );
+            }
             entity.update();
+            if debug_mode && entity.id == EntityType::Player {
+                debug_print(
+                    format!("pos: ({:.1}, {:.1}) ", entity.pos.0, entity.pos.1),
+                    2,
+                );
+                debug_print(
+                    format!("vel: ({:.1}, {:.1}) ", entity.vel.x, entity.vel.y),
+                    3,
+                );
+                debug_print(
+                    format!("acc: ({:.1}, {:.1}) ", entity.acc.x, entity.acc.y),
+                    4,
+                );
+            }
         }
 
         // physics calculations done, render!

@@ -122,7 +122,7 @@ mod test_entity_vector {
                 "(b) initial: {:?}, actual_new: {:?}, expect_new: {:?}",
                 data.initial_vels.1, new_b_vel, data.expect_vels.1
             );
-            println!("");
+            println!();
             assert!((new_a_vel.x, new_a_vel.y) == (data.expect_vels.0.x, data.expect_vels.0.y));
             assert!((new_b_vel.x, new_b_vel.y) == (data.expect_vels.1.x, data.expect_vels.1.y));
         }
