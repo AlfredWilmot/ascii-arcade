@@ -1,5 +1,4 @@
-use ascii_arcade::entity::{collision, Entities, Entity, EntityType};
-use ascii_arcade::scene::debug_print;
+use ascii_arcade::entity::{update, Entities, Entity, EntityType};
 use ascii_arcade::user_input::Cmd;
 use ascii_arcade::{scene, user_input};
 use std::ops::BitXor;
@@ -12,7 +11,7 @@ fn main() {
     //
     // INITIALISATION
     //
-    let mut debug_mode: bool = false;
+    let mut enable_debug: bool = false;
 
     // keep the RawTerminal in scope until we exit the game
     let mut _stdout = scene::init();
@@ -58,7 +57,7 @@ fn main() {
             }
             Cmd::DEBUG(_) => {
                 //scene::debug_print(key, 1);
-                debug_mode = debug_mode.bitxor(true);
+                enable_debug = enable_debug.bitxor(true);
             }
             // spawn an entity of some type at some location
             Cmd::SPAWN(x, y, id) => {
@@ -78,33 +77,8 @@ fn main() {
             }
         }
 
-        // update rules based on collision state
-        collision::resolve(&mut entities_now);
-
         // resolve physics calculations
-        for entity in entities_now.iter_mut() {
-            if debug_mode && entity.id == EntityType::Player {
-                debug_print(
-                    format!("force: ({:.1}, {:.1}) ", entity.force.x, entity.force.y),
-                    1,
-                );
-            }
-            entity.update();
-            if debug_mode && entity.id == EntityType::Player {
-                debug_print(
-                    format!("pos: ({:.1}, {:.1}) ", entity.pos.0, entity.pos.1),
-                    2,
-                );
-                debug_print(
-                    format!("vel: ({:.1}, {:.1}) ", entity.vel.x, entity.vel.y),
-                    3,
-                );
-                debug_print(
-                    format!("acc: ({:.1}, {:.1}) ", entity.acc.x, entity.acc.y),
-                    4,
-                );
-            }
-        }
+        update(&mut entities_now, enable_debug);
 
         // physics calculations done, render!
         scene::render(&entities_then, &entities_now);

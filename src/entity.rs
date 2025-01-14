@@ -9,6 +9,8 @@ use std::fmt::Debug;
 
 use vector::EuclidianVector;
 
+use crate::scene::debug_print;
+
 pub const BACKGROUND: char = ' ';
 
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
@@ -88,6 +90,24 @@ impl Default for Entity {
     }
 }
 
+/// performs force and motion calculations on all the passed entities
+pub fn update(entities: &mut Vec<Entity>, debug: bool) {
+    // handle additional forces generated due to a collision
+    collision::resolve(entities);
+    // update motion parameters based on the applied forces
+    for entity in entities.iter_mut() {
+        if debug && entity.id == EntityType::Player {
+            debug_print(format!("force: {:.1?} ", entity.force), 1);
+        }
+        entity.update();
+        if debug && entity.id == EntityType::Player {
+            debug_print(format!("pos: {:.1?} ", entity.pos), 2);
+            debug_print(format!("vel: {:.1?} ", entity.vel), 3);
+            debug_print(format!("acc: {:.1?} ", entity.acc), 4);
+        }
+    }
+}
+
 impl Entity {
     /// apply a force vector to the associated entity to affect its acceleration vector
     /// F = m * a
@@ -123,7 +143,7 @@ impl Entity {
     /// x1 = x0 + vt + 0.5at^2
     /// v1 = v0 + at
     /// F = m * a
-    pub fn update(&mut self) {
+    fn update(&mut self) {
         // determine the resultant acceleration from the applied forces
         // constant force means constant acceleration
         self.acc.x = self.force.x / self.mass;
