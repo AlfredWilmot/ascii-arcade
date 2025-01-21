@@ -51,6 +51,7 @@ pub struct Entity {
     pub mass: f32,
     pub hit_radius: f32,
     pub force: EuclidianVector,
+    pub next_force: EuclidianVector,
     pub grounded: bool,
 
     // these affect both physics calculations and rendering behaviour
@@ -84,6 +85,7 @@ impl Default for Entity {
             acc: EuclidianVector::new(0.0, 0.0),
             mass: 1.0,
             force: EuclidianVector::new(0.0, 0.0),
+            next_force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
         }
@@ -112,10 +114,10 @@ impl Entity {
     /// apply a force vector to the associated entity to affect its acceleration vector
     /// F = m * a
     pub fn apply_force(&mut self, fx: f32, fy: f32) {
-        self.force.x += fx;
-        self.force.y += fy;
-        constraint(&mut self.force.x, -MAX_FORCE, MAX_FORCE);
-        constraint(&mut self.force.y, -MAX_FORCE, MAX_FORCE);
+        self.next_force.x += fx;
+        self.next_force.y += fy;
+        constraint(&mut self.next_force.x, -MAX_FORCE, MAX_FORCE);
+        constraint(&mut self.next_force.y, -MAX_FORCE, MAX_FORCE);
     }
 
     /// define a set-point acceleration that the entity should try to get to
@@ -134,9 +136,9 @@ impl Entity {
 
     /// define a set-point position that the entity should try to get to
     pub fn target_pos(&mut self, x: f32, y: f32) {
-        // TODO: calculate the required force that needs to be applied
-        // to drive the entity to the desired position
-        self.pos = (x, y);
+        let vx = (self.pos.0 - x) / TIME_STEP;
+        let vy = (self.pos.1 - y) / TIME_STEP;
+        self.target_vel(vx, vy);
     }
 
     /// update entity position using motion equations and Newton's 2nd Law:
@@ -146,8 +148,8 @@ impl Entity {
     fn update(&mut self) {
         // determine the resultant acceleration from the applied forces
         // constant force means constant acceleration
-        self.acc.x = self.force.x / self.mass;
-        self.acc.y = self.force.y / self.mass;
+        self.acc.x = self.next_force.x / self.mass;
+        self.acc.y = self.next_force.y / self.mass;
 
         // determine entity motion
         // constant velocity means no force is being applied
@@ -157,7 +159,8 @@ impl Entity {
         self.pos.1 += self.vel.y * TIME_STEP + 0.5 * self.acc.y * TIME_STEP * TIME_STEP;
 
         // "consume" the applied forces
-        self.force = EuclidianVector::new(0.0, 0.0);
+        self.force = self.next_force.clone();
+        self.next_force = EuclidianVector::new(0.0, 0.0);
         self.grounded = false;
 
         // apply constraints

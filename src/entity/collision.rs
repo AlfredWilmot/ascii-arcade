@@ -31,10 +31,10 @@ fn pair_wise_comparison(entities: &mut Entities) {
 
 impl Entity {
     /// Determines whether this Entity's hitbox is interseting with that of the target
-    pub fn colliding(&self, target: &Entity) -> bool {
+    pub fn colliding(&self, target: &Entity) -> (f32, f32) {
         let my_hitbox = Square::new(&self.pos, &self.hit_radius);
         let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
-        my_hitbox.intersects(&thy_hitbox)
+        my_hitbox.overlap_size(&thy_hitbox)
     }
 
     /// Determines whether this entity is colliding with some other entity, and if so,
@@ -43,7 +43,8 @@ impl Entity {
     pub fn handle_collision(&mut self, target: &Entity) {
         //
         // are we even near each other?
-        if !self.colliding(target) {
+        let overlap = self.colliding(target);
+        if overlap.0 == 0.0 && overlap.1 == 0.0 {
             return;
         }
 
@@ -51,18 +52,23 @@ impl Entity {
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
         let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
 
-        // hey! are you pushing me?!
-        if target.force.dot(&you_to_me) > 0.0 {
-            let force_directed_at_me = EuclidianVector::new(
-                you_to_me.x.abs() * target.force.x,
-                you_to_me.y.abs() * target.force.y,
-            );
-            self.apply_force(force_directed_at_me.x, force_directed_at_me.y);
-        }
+        // we shouldn't be intersecting, so let's adjust for that!
+        self.target_pos(
+            self.pos.0 + me_to_you.x * overlap.0 * 0.5,
+            self.pos.1 - me_to_you.y * overlap.1 * 0.5,
+        );
 
         // are both our trajectories either orthogonal to or in the opposite direction of one-another?
         // if so, then we're NOT moving forther into the collision, so there's no velocity changes.
         if self.vel.dot(&me_to_you) <= 0.0 && target.vel.dot(&you_to_me) <= 0.0 {
+            // hey! are you pushing me?!
+            if target.force.dot(&you_to_me) > 0.0 {
+                let force_directed_at_me = EuclidianVector::new(
+                    you_to_me.x.abs() * target.force.x,
+                    you_to_me.y.abs() * target.force.y,
+                );
+                self.apply_force(force_directed_at_me.x, force_directed_at_me.y);
+            }
             return;
         }
 
