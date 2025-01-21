@@ -98,6 +98,9 @@ pub fn update(entities: &mut Vec<Entity>, debug: bool) {
     collision::resolve(entities);
     // update motion parameters based on the applied forces
     for entity in entities.iter_mut() {
+        if entity.id == EntityType::Static {
+            continue;
+        }
         if debug && entity.id == EntityType::Player {
             debug_print(format!("force: {:.1?} ", entity.force), 1);
         }

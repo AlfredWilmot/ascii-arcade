@@ -2,7 +2,7 @@ use core::f32;
 
 use super::vector::EuclidianVector;
 use crate::entity::collision_geometry::Square;
-use crate::entity::{Entities, Entity};
+use crate::entity::{Entities, Entity, EntityType};
 
 pub fn resolve(entities: &mut Entities) {
     pair_wise_comparison(entities);
@@ -17,6 +17,9 @@ pub fn resolve(entities: &mut Entities) {
 /// is the WORST-CASE scenario (n^2)
 fn pair_wise_comparison(entities: &mut Entities) {
     for i in 0..entities.len() {
+        if entities[i].id == EntityType::Static {
+            continue;
+        }
         // perform collision detection against ALL other entities in the scene (n^2)
         for j in 0..entities.len() {
             // an entity cannot collide with itself!
