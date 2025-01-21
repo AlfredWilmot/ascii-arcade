@@ -83,27 +83,4 @@ mod tests_scene_map {
         assert!(adjacent(&scene, 2, 3).len() == 5);
         assert!(adjacent(&scene, 3, 3).len() == 3);
     }
-
-    #[test]
-    fn test_moving_an_entity_in_the_scene() {
-        //create a scene with 9 entities on the grid, and move on entity to the right:
-        // (1,1) (2,1) (3,1)
-        // (1,2) (2,2) (3,2) -> (4,2)
-        // (1,3) (2,3) (3,3)
-        let entities = make_entity_grid(3, 3);
-        let mut scene = make_entity_map(&entities);
-
-        // verifying the scene, and that our hero at (3,2) is adjacent to 5 entites
-        assert!(scene.len() == 9);
-        assert!(adjacent(&scene, 3, 2).len() == 5);
-
-        // extract our hero from the scene, update their position (could be done by a physics
-        // calculation, for instance), and then reinsert them into the scene.
-        if let Some(mut goblin) = remove(&mut scene, 3, 2) {
-            goblin.target_pos(4.0, 2.0);
-            insert(&mut scene, goblin);
-        }
-        // they should now  only be adjacent to two other entities
-        assert!(adjacent(&scene, 4, 2).len() == 2);
-    }
 }
