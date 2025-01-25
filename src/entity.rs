@@ -224,7 +224,6 @@ impl Entity {
             // simulates a totally inelastic collision along the x-axis
             self.vel.x = 0.0;
             self.apply_force(-self.force.x, 0.0);
-            self.grounded = true;
         }
         if constraint(&mut self.pos.1, 0.0_f32, (window.1 - 1) as f32) {
             //

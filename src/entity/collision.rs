@@ -54,12 +54,15 @@ impl Entity {
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
         let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
-
-        // we shouldn't be intersecting, so let's adjust for that!
-        self.target_pos(
-            self.pos.0 + me_to_you.x * overlap.0 * 0.5,
-            self.pos.1 - me_to_you.y * overlap.1 * 0.5,
-        );
+        //
+        // are we intersecting? If so, let's adjust for that!
+        let overlap = self.colliding(target);
+        if overlap.0 > 0.0 || overlap.1 > 0.0 {
+            self.target_pos(
+                self.pos.0 + me_to_you.x * overlap.0 * 0.5,
+                self.pos.1 - me_to_you.y * overlap.1 * 0.5,
+            );
+        }
 
         // are both our trajectories either orthogonal to or in the opposite direction of one-another?
         // if so, then we're NOT moving forther into the collision, so there's no velocity changes.
