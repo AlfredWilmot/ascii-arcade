@@ -6,6 +6,7 @@ use core::{f32, fmt};
 use std::cmp::PartialEq;
 use std::cmp::PartialOrd;
 use std::fmt::Debug;
+use std::sync::LazyLock;
 
 use vector::EuclidianVector;
 
@@ -18,6 +19,10 @@ pub const DEFAULT_WINDOW: (u16, u16) = (50, 10); // defines the viewing area and
 const MAX_VEL: f32 = 20.0;
 const MAX_ACC: f32 = 1000.0;
 const MAX_FORCE: f32 = 1000.0;
+
+// initialise the window boundary at once runtime by checking the size of the terminal
+static WINDOW: LazyLock<(u16, u16)> =
+    LazyLock::new(|| termion::terminal_size().unwrap_or(DEFAULT_WINDOW));
 
 /// defines a vector of entities
 pub type Entities = Vec<Entity>;
@@ -218,14 +223,13 @@ impl Entity {
         constraint(&mut self.acc.y, -MAX_ACC, MAX_ACC);
         //
         // limit position to window
-        let window = termion::terminal_size().unwrap_or(DEFAULT_WINDOW);
-        if constraint(&mut self.pos.0, 0.0_f32, (window.0 - 1) as f32) {
+        if constraint(&mut self.pos.0, 0.0_f32, (WINDOW.0 - 1) as f32) {
             //
             // simulates a totally inelastic collision along the x-axis
             self.vel.x = 0.0;
             self.apply_force(-self.force.x, 0.0);
         }
-        if constraint(&mut self.pos.1, 0.0_f32, (window.1 - 1) as f32) {
+        if constraint(&mut self.pos.1, 0.0_f32, (WINDOW.1 - 1) as f32) {
             //
             // simulates a totally inelastic collision along the xyaxis
             self.vel.y = 0.0;
