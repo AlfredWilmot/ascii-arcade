@@ -10,8 +10,6 @@ use std::sync::LazyLock;
 
 use vector::EuclidianVector;
 
-use crate::scene::debug_print;
-
 pub const BACKGROUND: char = ' ';
 
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
@@ -57,7 +55,7 @@ pub struct Entity {
     pub mass: f32,
     pub hit_radius: f32,
     pub force: EuclidianVector,
-    pub next_force: EuclidianVector,
+    pub input_force: EuclidianVector,
     pub grounded: bool,
     pub colliding: bool,
 
@@ -98,7 +96,7 @@ impl Default for Entity {
             acc: EuclidianVector::new(0.0, 0.0),
             mass: 1.0,
             force: EuclidianVector::new(0.0, 0.0),
-            next_force: EuclidianVector::new(0.0, 0.0),
+            input_force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
             colliding: false,
@@ -123,10 +121,10 @@ impl Entity {
     /// apply a force vector to the associated entity to affect its acceleration vector
     /// F = m * a
     pub fn apply_force(&mut self, fx: f32, fy: f32) {
-        self.next_force.x += fx;
-        self.next_force.y += fy;
-        constraint(&mut self.next_force.x, -MAX_FORCE, MAX_FORCE);
-        constraint(&mut self.next_force.y, -MAX_FORCE, MAX_FORCE);
+        self.input_force.x += fx;
+        self.input_force.y += fy;
+        constraint(&mut self.input_force.x, -MAX_FORCE, MAX_FORCE);
+        constraint(&mut self.input_force.y, -MAX_FORCE, MAX_FORCE);
     }
 
     /// define a set-point acceleration that the entity should try to get to
@@ -157,8 +155,8 @@ impl Entity {
     fn update(&mut self) {
         // determine the resultant acceleration from the applied forces
         // constant force means constant acceleration
-        self.acc.x = self.next_force.x / self.mass;
-        self.acc.y = self.next_force.y / self.mass;
+        self.acc.x = self.input_force.x / self.mass;
+        self.acc.y = self.input_force.y / self.mass;
 
         // determine entity motion
         // constant velocity means no force is being applied
@@ -168,8 +166,8 @@ impl Entity {
         self.pos.1 += self.vel.y * TIME_STEP + 0.5 * self.acc.y * TIME_STEP * TIME_STEP;
 
         // "consume" the applied forces
-        self.force = self.next_force.clone();
-        self.next_force = EuclidianVector::new(0.0, 0.0);
+        self.force = self.input_force.clone();
+        self.input_force = EuclidianVector::new(0.0, 0.0);
         self.grounded = false;
 
         // apply constraints
