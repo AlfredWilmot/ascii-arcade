@@ -3,7 +3,6 @@ use core::f32;
 use super::vector::EuclidianVector;
 use crate::entity::collision_geometry::Square;
 use crate::entity::{Entities, Entity, EntityType};
-use crate::scene::debug_print;
 
 // -------------------------------------------------------------------------- //
 // ------------------------------ ALGORITHMS -------------------------------- //
@@ -23,6 +22,7 @@ pub fn resolve_pairwise(entities_then: &Entities, entities_now: &mut Entities) {
             if i == j {
                 continue;
             }
+            entity_under_test.colliding = false;
             entity_under_test.handle_collision(entity_to_compare);
         }
     }
@@ -40,36 +40,12 @@ impl Entity {
         if !my_hitbox.intersects(&thy_hitbox) {
             return;
         }
+        self.colliding = true;
 
-        if self.id == EntityType::Player {
-            debug_print(format!("pos: {:.1?} ", self.pos), 1);
-            debug_print(format!("vel: {:.1?} ", self.vel), 2);
-            debug_print(format!("acc: {:.1?} ", self.acc), 3);
-        }
         //
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
         let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
-
-        //
-        // hey! are you pushing me?!
-        //if target.force.dot(&you_to_me) > 0.0 {
-        //    self.apply_force(
-        //        you_to_me.x * target.force.x,
-        //        you_to_me.y * target.force.y,
-        //    );
-        //}
-        // am I pushing you?
-        // TODO
-        if self.id == EntityType::Player {
-            debug_print(format!("{}", self.force.dot(&me_to_you)), 1);
-        }
-        //if self.force.dot(&me_to_you) > 0.0 {
-        //    self.apply_force(
-        //        me_to_you.x * self.force.x,
-        //        me_to_you.y * self.force.y,
-        //    );
-        //}
 
         // are both our trajectories either orthogonal to or in the opposite direction of one-another?
         // if so, then we're NOT moving further into the collision, so there's no velocity changes.
