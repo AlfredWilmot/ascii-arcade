@@ -3,10 +3,7 @@ use core::f32;
 use super::vector::EuclidianVector;
 use crate::entity::collision_geometry::Square;
 use crate::entity::{Entities, Entity, EntityType};
-
-pub fn resolve(entities: &mut Entities) {
-    pair_wise_comparison(entities);
-}
+use crate::scene::debug_print;
 
 // -------------------------------------------------------------------------- //
 // ------------------------------ ALGORITHMS -------------------------------- //
@@ -15,66 +12,68 @@ pub fn resolve(entities: &mut Entities) {
 /// compares each entity on the scene against all other entities on the scene.
 /// WARNING: comparing each entity against ALL other entities on the scene
 /// is the WORST-CASE scenario (n^2)
-fn pair_wise_comparison(entities: &mut Entities) {
-    for i in 0..entities.len() {
-        if entities[i].id == EntityType::Static {
+pub fn resolve_pairwise(entities_then: &Entities, entities_now: &mut Entities) {
+    for (i, entity_under_test) in entities_now.iter_mut().enumerate() {
+        if entity_under_test.id == EntityType::Static {
             continue;
         }
         // perform collision detection against ALL other entities in the scene (n^2)
-        for j in 0..entities.len() {
+        for (j, entity_to_compare) in entities_then.iter().enumerate() {
             // an entity cannot collide with itself!
             if i == j {
                 continue;
             }
-            let other = entities[j].clone();
-            entities[i].handle_collision(&other);
+            entity_under_test.handle_collision(entity_to_compare);
         }
     }
 }
 
 impl Entity {
-    /// Determines whether this Entity's hitbox is interseting with that of the target
-    pub fn colliding(&self, target: &Entity) -> (f32, f32) {
-        let my_hitbox = Square::new(&self.pos, &self.hit_radius);
-        let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
-        my_hitbox.overlap_size(&thy_hitbox)
-    }
-
     /// Determines whether this entity is colliding with some other entity, and if so,
     /// updates this entity with the forces experienced due to the change in velocity
     /// resulting from the collision.
     pub fn handle_collision(&mut self, target: &Entity) {
         //
         // are we even near each other?
-        let overlap = self.colliding(target);
-        if overlap.0 == 0.0 && overlap.1 == 0.0 {
+        let my_hitbox = Square::new(&self.pos, &self.hit_radius);
+        let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
+        if !my_hitbox.intersects(&thy_hitbox) {
             return;
         }
 
+        if self.id == EntityType::Player {
+            debug_print(format!("pos: {:.1?} ", self.pos), 1);
+            debug_print(format!("vel: {:.1?} ", self.vel), 2);
+            debug_print(format!("acc: {:.1?} ", self.acc), 3);
+        }
+        //
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
         let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
+
         //
-        // are we intersecting? If so, let's adjust for that!
-        let overlap = self.colliding(target);
-        if overlap.0 > 0.0 || overlap.1 > 0.0 {
-            self.target_pos(
-                self.pos.0 + me_to_you.x * overlap.0 * 0.5,
-                self.pos.1 - me_to_you.y * overlap.1 * 0.5,
-            );
+        // hey! are you pushing me?!
+        //if target.force.dot(&you_to_me) > 0.0 {
+        //    self.apply_force(
+        //        you_to_me.x * target.force.x,
+        //        you_to_me.y * target.force.y,
+        //    );
+        //}
+        // am I pushing you?
+        // TODO
+        if self.id == EntityType::Player {
+            debug_print(format!("{}", self.force.dot(&me_to_you)), 1);
         }
+        //if self.force.dot(&me_to_you) > 0.0 {
+        //    self.apply_force(
+        //        me_to_you.x * self.force.x,
+        //        me_to_you.y * self.force.y,
+        //    );
+        //}
 
         // are both our trajectories either orthogonal to or in the opposite direction of one-another?
-        // if so, then we're NOT moving forther into the collision, so there's no velocity changes.
+        // if so, then we're NOT moving further into the collision, so there's no velocity changes.
         if self.vel.dot(&me_to_you) <= 0.0 && target.vel.dot(&you_to_me) <= 0.0 {
-            // hey! are you pushing me?!
-            if target.force.dot(&you_to_me) > 0.0 {
-                let force_directed_at_me = EuclidianVector::new(
-                    you_to_me.x.abs() * target.force.x,
-                    you_to_me.y.abs() * target.force.y,
-                );
-                self.apply_force(force_directed_at_me.x, force_directed_at_me.y);
-            }
             return;
         }
 
