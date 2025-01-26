@@ -37,16 +37,15 @@ fn main() {
         // apply control signals to player
         match user_input::keyboard_control(&rx) {
             Cmd::MOVE(x, y) => {
-                // WIP
-                if x == 0 && y != 0 {
-                    // can only jump when on the ground
-                    if player.grounded {
+                // can only control movement when atop sumat
+                if player.grounded {
+                    if x == 0 && y != 0 {
                         player.target_vel(player.vel.x, 10.0 * y as f32);
+                    } else if y == 0 && x != 0 {
+                        player.target_vel(20.0 * x as f32, player.vel.y);
+                    } else {
+                        player.target_vel(20.0 * x as f32, 10.0 * y as f32);
                     }
-                } else if y == 0 && x != 0 {
-                    player.target_vel(20.0 * x as f32, player.vel.y);
-                } else {
-                    player.target_vel(20.0 * x as f32, 10.0 * y as f32);
                 }
             }
             Cmd::STOP => {}
@@ -65,10 +64,10 @@ fn main() {
             entity.target_acc(0.0, 9.81);
             if entity.grounded {
                 // simulates fricion
-                //entity.target_vel(entity.vel.x * 0.9, entity.vel.y);
+                entity.target_vel(entity.vel.x * 0.9, entity.vel.y);
             } else {
                 // simulates less friction when airborne
-                //entity.target_vel(entity.vel.x * 0.99, entity.vel.y);
+                entity.target_vel(entity.vel.x * 0.99, entity.vel.y);
             }
         }
 
