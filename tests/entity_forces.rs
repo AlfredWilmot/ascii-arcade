@@ -13,7 +13,7 @@ mod test_entity_vector {
     fn test_ensure_current_forces_used_from_other_entities_not_their_new_forces() {
         let mut entities = make_test_data();
 
-        update(&mut entities, false);
+        update(&mut entities);
 
         let a = &entities[0];
         let b = &entities[1];
@@ -21,7 +21,7 @@ mod test_entity_vector {
         assert!(a.force.x >= 100.0);
         assert!(b.force.x == 0.0);
 
-        update(&mut entities, false);
+        update(&mut entities);
 
         let a = &entities[0];
         let b = &entities[1];

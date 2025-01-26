@@ -59,6 +59,7 @@ pub struct Entity {
     pub force: EuclidianVector,
     pub next_force: EuclidianVector,
     pub grounded: bool,
+    pub colliding: bool,
 
     // these affect both physics calculations and rendering behaviour
     pub state: EntityState,
@@ -100,12 +101,13 @@ impl Default for Entity {
             next_force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
+            colliding: false,
         }
     }
 }
 
 /// performs force and motion calculations on all the passed entities
-pub fn update(entities: &mut Vec<Entity>, debug: bool) {
+pub fn update(entities: &mut Vec<Entity>) {
     // handle additional forces generated due to a collision
     collision::resolve(entities);
     // update motion parameters based on the applied forces
@@ -113,15 +115,7 @@ pub fn update(entities: &mut Vec<Entity>, debug: bool) {
         if entity.id == EntityType::Static {
             continue;
         }
-        if debug && entity.id == EntityType::Player {
-            debug_print(format!("force: {:.1?} ", entity.force), 1);
-        }
         entity.update();
-        if debug && entity.id == EntityType::Player {
-            debug_print(format!("pos: {:.1?} ", entity.pos), 2);
-            debug_print(format!("vel: {:.1?} ", entity.vel), 3);
-            debug_print(format!("acc: {:.1?} ", entity.acc), 4);
-        }
     }
 }
 

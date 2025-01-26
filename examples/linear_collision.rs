@@ -1,7 +1,6 @@
 use ascii_arcade::entity::{update, Entities, Entity, EntityType};
 use ascii_arcade::user_input::Cmd;
 use ascii_arcade::{scene, user_input};
-use std::ops::BitXor;
 use std::thread;
 use std::time::Duration;
 
@@ -11,7 +10,6 @@ fn main() {
     //
     // INITIALISATION
     //
-    let mut enable_debug: bool = false;
 
     // keep the RawTerminal in scope until we exit the game
     let mut _stdout = scene::init();
@@ -55,10 +53,7 @@ fn main() {
             Cmd::EXIT => {
                 break 'game;
             }
-            Cmd::DEBUG(_) => {
-                //scene::debug_print(key, 1);
-                enable_debug = enable_debug.bitxor(true);
-            }
+            Cmd::DEBUG(_) => {}
             // spawn an entity of some type at some location
             Cmd::SPAWN(x, y, id) => {
                 entities_now.push(Entity::new(id, (x as f32, y as f32)));
@@ -70,15 +65,15 @@ fn main() {
             entity.target_acc(0.0, 9.81);
             if entity.grounded {
                 // simulates fricion
-                entity.target_vel(entity.vel.x * 0.9, entity.vel.y);
+                //entity.target_vel(entity.vel.x * 0.9, entity.vel.y);
             } else {
                 // simulates less friction when airborne
-                entity.target_vel(entity.vel.x * 0.99, entity.vel.y);
+                //entity.target_vel(entity.vel.x * 0.99, entity.vel.y);
             }
         }
 
         // resolve physics calculations
-        update(&mut entities_now, enable_debug);
+        update(&mut entities_now);
 
         // physics calculations done, render!
         scene::render(&entities_then, &entities_now);
