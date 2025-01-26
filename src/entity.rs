@@ -19,6 +19,7 @@ pub const DEFAULT_WINDOW: (u16, u16) = (50, 10); // defines the viewing area and
 const MAX_VEL: f32 = 20.0;
 const MAX_ACC: f32 = 1000.0;
 const MAX_FORCE: f32 = 1000.0;
+const MAX_MASS: f32 = 1000.0;
 
 // initialise the window boundary at once runtime by checking the size of the terminal
 static WINDOW: LazyLock<(u16, u16)> =
@@ -67,8 +68,14 @@ impl Entity {
     pub fn new(id: EntityType, pos: (f32, f32)) -> Entity {
         let mut mass: f32 = 1.0;
 
-        if id == EntityType::Player {
-            mass = 1.0;
+        match id {
+            EntityType::Player => {
+                mass = 1.0;
+            }
+            EntityType::Static => {
+                mass = MAX_MASS;
+            }
+            _ => {}
         }
 
         Entity {
