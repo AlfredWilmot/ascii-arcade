@@ -10,14 +10,16 @@ use std::sync::LazyLock;
 
 use vector::EuclidianVector;
 
+use crate::scene::debug_print;
+
 pub const BACKGROUND: char = ' ';
 
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
 pub const DEFAULT_WINDOW: (u16, u16) = (50, 10); // defines the viewing area and physical boundary
 const MAX_VEL: f32 = 20.0;
-const MAX_ACC: f32 = 1000.0;
-const MAX_FORCE: f32 = 1000.0;
-const MAX_MASS: f32 = 1000.0;
+const MAX_ACC: f32 = 100.0;
+const MAX_FORCE: f32 = 5_000.0;
+const MAX_MASS: f32 = 1_000.0;
 
 // initialise the window boundary at once runtime by checking the size of the terminal
 static WINDOW: LazyLock<(u16, u16)> =
@@ -54,8 +56,7 @@ pub struct Entity {
     pub acc: EuclidianVector,
     pub mass: f32,
     pub hit_radius: f32,
-    pub force: EuclidianVector,
-    pub input_force: EuclidianVector,
+    pub input_force: EuclidianVector, // forces applied to entity
     pub grounded: bool,
     pub colliding: bool,
 
@@ -65,17 +66,11 @@ pub struct Entity {
 
 impl Entity {
     pub fn new(id: EntityType, pos: (f32, f32)) -> Entity {
-        let mut mass: f32 = 1.0;
-
-        match id {
-            EntityType::Player => {
-                mass = 1.0;
-            }
-            EntityType::Static => {
-                mass = MAX_MASS;
-            }
-            _ => {}
-        }
+        let mass: f32 = match id {
+            EntityType::Player => 1.0,
+            EntityType::Npc => 10.0,
+            EntityType::Static => MAX_MASS,
+        };
 
         Entity {
             id,
@@ -95,7 +90,6 @@ impl Default for Entity {
             vel: EuclidianVector::new(0.0, 0.0),
             acc: EuclidianVector::new(0.0, 0.0),
             mass: 1.0,
-            force: EuclidianVector::new(0.0, 0.0),
             input_force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
@@ -108,6 +102,11 @@ impl Default for Entity {
 pub fn update(entities_then: &Vec<Entity>, entities_now: &mut Vec<Entity>) {
     // handle additional forces generated due to a collision
     collision::resolve_pairwise(entities_then, entities_now);
+    for entity in entities_now.iter() {
+        if entity.id == EntityType::Player && entity.colliding {
+            debug_print(format!("input_force: {:.1?} ", entity.input_force), 1);
+        }
+    }
     // update motion parameters based on the applied forces
     for entity in entities_now.iter_mut() {
         if entity.id == EntityType::Static {
@@ -166,7 +165,6 @@ impl Entity {
         self.pos.1 += self.vel.y * TIME_STEP + 0.5 * self.acc.y * TIME_STEP * TIME_STEP;
 
         // "consume" the applied forces
-        self.force = self.input_force.clone();
         self.input_force = EuclidianVector::new(0.0, 0.0);
         self.grounded = false;
 
@@ -223,16 +221,10 @@ impl Entity {
         //
         // limit position to window
         if constraint(&mut self.pos.0, 0.0_f32, (WINDOW.0 - 1) as f32) {
-            //
-            // simulates a totally inelastic collision along the x-axis
-            self.vel.x = 0.0;
-            self.apply_force(-self.force.x, 0.0);
+            self.target_vel(0.0, self.vel.y);
         }
         if constraint(&mut self.pos.1, 0.0_f32, (WINDOW.1 - 1) as f32) {
-            //
-            // simulates a totally inelastic collision along the xyaxis
-            self.vel.y = 0.0;
-            self.apply_force(0.0, -self.force.y);
+            self.target_vel(self.vel.x, 0.0);
             self.grounded = true;
         }
     }
