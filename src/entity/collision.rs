@@ -11,19 +11,21 @@ use crate::entity::{Entities, Entity, EntityType};
 /// compares each entity on the scene against all other entities on the scene.
 /// WARNING: comparing each entity against ALL other entities on the scene
 /// is the WORST-CASE scenario (n^2)
-pub fn resolve_pairwise(entities_then: &Entities, entities_now: &mut Entities) {
-    for (i, entity_under_test) in entities_now.iter_mut().enumerate() {
-        if entity_under_test.id == EntityType::Static {
-            continue;
-        }
-        // perform collision detection against ALL other entities in the scene (n^2)
-        for (j, entity_to_compare) in entities_then.iter().enumerate() {
-            // an entity cannot collide with itself!
-            if i == j {
-                continue;
+pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
+    'outer: for (i, entity_under_test) in entities_now.iter_mut().enumerate() {
+        'inner: for (j, entity_to_compare) in entities_then.iter().enumerate() {
+            //
+            // early-exit conditions
+            if entity_under_test.id == EntityType::Static {
+                continue 'outer;
             }
+            if i == j {
+                continue 'inner;
+            }
+            //
+            // are we colliding? if so, resolve!
             entity_under_test.colliding = false;
-            entity_under_test.handle_collision(entity_to_compare);
+            entity_under_test.try_collide(entity_to_compare);
         }
     }
 }
@@ -32,7 +34,7 @@ impl Entity {
     /// Determines whether this entity is colliding with some other entity, and if so,
     /// updates this entity with the forces experienced due to the change in velocity
     /// resulting from the collision.
-    pub fn handle_collision(&mut self, target: &Entity) {
+    pub fn try_collide(&mut self, target: &Entity) {
         //
         // are we even near each other?
         let my_hitbox = Square::new(&self.pos, &self.hit_radius);

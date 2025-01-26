@@ -10,8 +10,6 @@ use std::sync::LazyLock;
 
 use vector::EuclidianVector;
 
-use crate::scene::debug_print;
-
 pub const BACKGROUND: char = ' ';
 
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
@@ -68,7 +66,7 @@ impl Entity {
     pub fn new(id: EntityType, pos: (f32, f32)) -> Entity {
         let mass: f32 = match id {
             EntityType::Player => 1.0,
-            EntityType::Npc => 10.0,
+            EntityType::Npc => 1.0,
             EntityType::Static => MAX_MASS,
         };
 
@@ -100,13 +98,10 @@ impl Default for Entity {
 
 /// performs force and motion calculations on all the passed entities
 pub fn update(entities_then: &Vec<Entity>, entities_now: &mut Vec<Entity>) {
+    //
     // handle additional forces generated due to a collision
-    collision::resolve_pairwise(entities_then, entities_now);
-    for entity in entities_now.iter() {
-        if entity.id == EntityType::Player && entity.colliding {
-            debug_print(format!("input_force: {:.1?} ", entity.input_force), 1);
-        }
-    }
+    collision::pairwise(entities_then, entities_now);
+    //
     // update motion parameters based on the applied forces
     for entity in entities_now.iter_mut() {
         if entity.id == EntityType::Static {
@@ -220,11 +215,11 @@ impl Entity {
         constraint(&mut self.acc.y, -MAX_ACC, MAX_ACC);
         //
         // limit position to window
-        if constraint(&mut self.pos.0, 0.0_f32, (WINDOW.0 - 1) as f32) {
-            self.target_vel(0.0, self.vel.y);
+        if constraint(&mut self.pos.0, 1.0_f32, (WINDOW.0 - 1) as f32) {
+            self.vel.x = 0.0;
         }
-        if constraint(&mut self.pos.1, 0.0_f32, (WINDOW.1 - 1) as f32) {
-            self.target_vel(self.vel.x, 0.0);
+        if constraint(&mut self.pos.1, 1.0_f32, (WINDOW.1 - 1) as f32) {
+            self.vel.y = 0.0;
             self.grounded = true;
         }
     }
