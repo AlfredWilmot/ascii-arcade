@@ -10,6 +10,8 @@ use std::sync::LazyLock;
 
 use vector::EuclidianVector;
 
+use crate::scene::debug_print;
+
 pub const BACKGROUND: char = ' ';
 
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
@@ -45,21 +47,24 @@ pub enum EntityType {
 #[derive(Clone, Debug)]
 #[readonly::make]
 pub struct Entity {
-    // used to identiy entities
+    // these affect both physics calculations and rendering behaviour
     pub id: EntityType,
+    pub state: EntityState,
 
-    // these drive physics calculations
+    // these drive physics calculations (unlikely to change much)
     pub pos: (f32, f32),
     pub vel: EuclidianVector,
     pub acc: EuclidianVector,
     pub mass: f32,
     pub hit_radius: f32,
-    pub input_force: EuclidianVector, // forces applied to entity
+
+    // forces applied to and exerted by entity
+    pub input_force: EuclidianVector,
+    pub exerted_force: EuclidianVector,
+
+    // misc fields (subject to imminent change)
     pub grounded: bool,
     pub colliding: bool,
-
-    // these affect both physics calculations and rendering behaviour
-    pub state: EntityState,
 }
 
 impl Entity {
@@ -89,6 +94,7 @@ impl Default for Entity {
             acc: EuclidianVector::new(0.0, 0.0),
             mass: 1.0,
             input_force: EuclidianVector::new(0.0, 0.0),
+            exerted_force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
             colliding: false,
@@ -101,6 +107,21 @@ pub fn update(entities_then: &Vec<Entity>, entities_now: &mut Vec<Entity>) {
     //
     // handle additional forces generated due to a collision
     collision::pairwise(entities_then, entities_now);
+    //
+    // handle reaction force due to force exerted onto target
+    // TODO: need to be able to treat collisions with multiple adjacen entities as single
+    // collision
+    for entity in entities_now.iter_mut() {
+        if entity.colliding {
+            entity.apply_force(-entity.exerted_force.x, -entity.exerted_force.y);
+            entity.grounded = true;
+            if entity.id == EntityType::Player {
+                debug_print(format!("{:.1?}", entity), 1);
+            }
+            continue;
+        }
+        entity.grounded = false;
+    }
     //
     // update motion parameters based on the applied forces
     for entity in entities_now.iter_mut() {
@@ -160,8 +181,8 @@ impl Entity {
         self.pos.1 += self.vel.y * TIME_STEP + 0.5 * self.acc.y * TIME_STEP * TIME_STEP;
 
         // "consume" the applied forces
+        self.exerted_force = self.input_force.clone();
         self.input_force = EuclidianVector::new(0.0, 0.0);
-        self.grounded = false;
 
         // apply constraints
         self.constrain();
