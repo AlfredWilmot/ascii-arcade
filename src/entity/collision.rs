@@ -24,27 +24,37 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
             }
             //
             // are we colliding? if so, resolve!
-            entity_under_test.colliding = false;
             entity_under_test.try_collide(entity_to_compare);
+            //
+            // TODO: handle reaction forces (F=ma)
+            let _max_reaction_force = EuclidianVector::new(
+                entity_under_test.mass * entity_under_test.acc.x,
+                entity_under_test.mass * entity_under_test.acc.y,
+            )
+            .magnitude();
         }
     }
 }
 
 impl Entity {
+    /// Determine whether this entity is colliding (intersecting) with the target entity
+    /// using a hitbox of some description.
+    pub fn colliding(&self, target: &Entity) -> bool {
+        let my_hitbox = Square::new(&self.pos, &self.hit_radius);
+        let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
+        my_hitbox.intersects(&thy_hitbox)
+    }
+
     /// Determines whether this entity is colliding with some other entity, and if so,
     /// updates this entity with the forces experienced due to the change in velocity
     /// resulting from the collision.
     pub fn try_collide(&mut self, target: &Entity) {
         //
         // are we even near each other?
-        let my_hitbox = Square::new(&self.pos, &self.hit_radius);
-        let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
-        if !my_hitbox.intersects(&thy_hitbox) {
+        if !self.colliding(target) {
             return;
         }
-        self.colliding = true;
 
-        //
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
         let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();

@@ -60,11 +60,10 @@ pub struct Entity {
 
     // forces applied to and exerted by entity
     pub input_force: EuclidianVector,
-    pub exerted_force: EuclidianVector,
+    pub reaction_force: EuclidianVector,
 
     // misc fields (subject to imminent change)
     pub grounded: bool,
-    pub colliding: bool,
 }
 
 impl Entity {
@@ -94,10 +93,9 @@ impl Default for Entity {
             acc: EuclidianVector::new(0.0, 0.0),
             mass: 1.0,
             input_force: EuclidianVector::new(0.0, 0.0),
-            exerted_force: EuclidianVector::new(0.0, 0.0),
+            reaction_force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
-            colliding: false,
         }
     }
 }
@@ -112,15 +110,9 @@ pub fn update(entities_then: &Vec<Entity>, entities_now: &mut Vec<Entity>) {
     // TODO: need to be able to treat collisions with multiple adjacen entities as single
     // collision
     for entity in entities_now.iter_mut() {
-        if entity.colliding {
-            entity.apply_force(-entity.exerted_force.x, -entity.exerted_force.y);
-            entity.grounded = true;
-            if entity.id == EntityType::Player {
-                debug_print(format!("{:.1?}", entity), 1);
-            }
-            continue;
+        if entity.id == EntityType::Player {
+            debug_print(format!("{:.1?}", entity), 1);
         }
-        entity.grounded = false;
     }
     //
     // update motion parameters based on the applied forces
@@ -181,7 +173,6 @@ impl Entity {
         self.pos.1 += self.vel.y * TIME_STEP + 0.5 * self.acc.y * TIME_STEP * TIME_STEP;
 
         // "consume" the applied forces
-        self.exerted_force = self.input_force.clone();
         self.input_force = EuclidianVector::new(0.0, 0.0);
 
         // apply constraints
