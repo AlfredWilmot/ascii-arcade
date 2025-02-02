@@ -96,9 +96,13 @@ impl EuclidianVector {
     /// assert_eq!(a.unit().y, -1.0);
     /// ```
     pub fn unit(&self) -> EuclidianVector {
-        EuclidianVector {
-            x: self.x / self.magnitude(),
-            y: self.y / self.magnitude(),
+        if self.magnitude() <= 0.0 {
+            EuclidianVector { x: 0.0, y: 0.0 }
+        } else {
+            EuclidianVector {
+                x: self.x / self.magnitude(),
+                y: self.y / self.magnitude(),
+            }
         }
     }
 
