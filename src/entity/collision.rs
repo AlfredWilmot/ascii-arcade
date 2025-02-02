@@ -10,28 +10,41 @@ use crate::entity::{Entities, Entity, EntityType};
 
 /// compares each entity on the scene against all other entities on the scene.
 /// WARNING: comparing each entity against ALL other entities on the scene
-/// is the WORST-CASE scenario (n^2)
+/// yields the WORST-CASE compute performance (n^2) -- serves as the baseline.
 pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
     'outer: for (i, entity_under_test) in entities_now.iter_mut().enumerate() {
+        // initially assume the entity is not ontop of anything
+        entity_under_test.grounded = false;
+        // determine average normal force applied to entity under test
+        let mut unit_normal_force = EuclidianVector::new(0.0, 0.0);
         'inner: for (j, entity_to_compare) in entities_then.iter().enumerate() {
-            //
             // early-exit conditions
             if entity_under_test.id == EntityType::Static {
                 continue 'outer;
             }
-            if i == j {
+            // fumbling in the dark here; am I alone or are we just not touching?
+            if i == j || !entity_under_test.colliding(entity_to_compare) {
                 continue 'inner;
             }
-            //
-            // are we colliding? if so, resolve!
+            // for simplicity treating collision as grounding condition for now
+            entity_under_test.grounded = true;
+
+            // resolve forces generated from velocity changes upon collision
             entity_under_test.try_collide(entity_to_compare);
-            //
-            // TODO: handle reaction forces (F=ma)
-            let _max_reaction_force = EuclidianVector::new(
-                entity_under_test.mass * entity_under_test.acc.x,
-                entity_under_test.mass * entity_under_test.acc.y,
-            )
-            .magnitude();
+
+            // determine the normal force resulting from contact
+            let you_to_me =
+                EuclidianVector::from(entity_to_compare.pos, entity_under_test.pos).unit();
+            unit_normal_force.x += you_to_me.x;
+            unit_normal_force.y += you_to_me.y;
+
+            //BREAKPOINT
+            entity_under_test.apply_force(
+                entity_under_test.mass * entity_under_test.acc.x.abs() * unit_normal_force.unit().x,
+                2.0 * entity_under_test.mass
+                    * entity_under_test.acc.y.abs()
+                    * unit_normal_force.unit().y,
+            );
         }
     }
 }
