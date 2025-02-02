@@ -6,7 +6,8 @@ BINARY_PATH="./target/debug"
 
 _usage(){
   echo "Usage: $0 <NAME_OF_RUNNING_BINARY>" 2>&1
-  echo "binary must be located somewhere under ${BINARY_PATH}"
+  echo "binary must be located somewhere under ${BINARY_PATH}" 2>&1
+  echo "instrument src/ code with '//BREAKPOINT' to be used as breakpoint by gdb"
   if [ "$#" -gt 0 ]; then
     echo "$*" 2>&1
   fi
@@ -26,5 +27,16 @@ if [ -z "${RUNNING_BINARY_PID}" ]; then
   _usage "No PID matching '${BINARY_NAME}', is the process running?"
 fi
 
+echo "${BINARY_NAME} matches PID ${RUNNING_BINARY_PID}"
+
+# TODO parse source-files, generate "break-points" at tagged locations in source-code file
+# and feed these into the gdb command below
+GDB_PARAMS=''
+while IFS= read -r breakpoint; do
+  GDB_PARAMS+="-ex 'break ${breakpoint}' "
+done <<< "$(grep -ERn '(//|#) *BREAKPOINT' src/ | awk '{print $1}' | sed 's/.$//')"
+GDB_PARAMS+="-ex 'continue'"
+
 # attempt to attach debugger to the running process
-sudo gdb attach "${RUNNING_BINARY_PID}"
+CMD="sudo gdb "${GDB_PARAMS}" -q attach "${RUNNING_BINARY_PID}""
+eval "${CMD}"
