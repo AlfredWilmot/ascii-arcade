@@ -16,7 +16,7 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
         // initially assume the entity is not ontop of anything
         entity_under_test.grounded = false;
         // determine average normal force applied to entity under test
-        let mut unit_normal_force = EuclidianVector::new(0.0, 0.0);
+        let mut normal_force = EuclidianVector::new(0.0, 0.0);
         'inner: for (j, entity_to_compare) in entities_then.iter().enumerate() {
             // early-exit conditions
             if entity_under_test.id == EntityType::Static {
@@ -35,15 +35,14 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
             // determine the normal force resulting from contact
             let you_to_me =
                 EuclidianVector::from(entity_to_compare.pos, entity_under_test.pos).unit();
-            unit_normal_force.x += you_to_me.x;
-            unit_normal_force.y += you_to_me.y;
+            normal_force.x += you_to_me.x;
+            normal_force.y += you_to_me.y;
 
             //BREAKPOINT
+            let mass = entity_under_test.mass;
             entity_under_test.apply_force(
-                entity_under_test.mass * entity_under_test.acc.x.abs() * unit_normal_force.unit().x,
-                2.0 * entity_under_test.mass
-                    * entity_under_test.acc.y.abs()
-                    * unit_normal_force.unit().y,
+                mass * entity_under_test.acc.x.abs() * normal_force.unit().x,
+                2.0 * mass * entity_under_test.acc.y.abs() * normal_force.unit().y,
             );
         }
     }
@@ -78,7 +77,7 @@ impl Entity {
             return;
         }
 
-        // what forces do I experience due to volocity changes after colliding?
+        // what forces do I experience due to velocity changes after colliding?
         let resultant_vel = collision_calc(
             &EuclidianVector::new(
                 me_to_you.x.abs() * self.vel.x,
