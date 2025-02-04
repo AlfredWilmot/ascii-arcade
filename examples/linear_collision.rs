@@ -1,3 +1,4 @@
+use ascii_arcade::entity::vector::EuclidianVector;
 use ascii_arcade::entity::{update, Entities, Entity, EntityType};
 use ascii_arcade::user_input::Cmd;
 use ascii_arcade::{scene, user_input};
@@ -39,13 +40,15 @@ fn main() {
             Cmd::MOVE(x, y) => {
                 // can only control movement when atop sumat
                 if player.grounded {
-                    if x == 0 && y != 0 {
-                        player.target_vel(player.vel.x, 10.0 * y as f32);
+                    // generate movement control-force based on user-input
+                    let move_force: EuclidianVector = if x == 0 && y != 0 {
+                        player.target_vel(player.vel.x, 10.0 * y as f32)
                     } else if y == 0 && x != 0 {
-                        player.target_vel(20.0 * x as f32, player.vel.y);
+                        player.target_vel(20.0 * x as f32, player.vel.y)
                     } else {
-                        player.target_vel(20.0 * x as f32, 10.0 * y as f32);
-                    }
+                        player.target_vel(20.0 * x as f32, 10.0 * y as f32)
+                    };
+                    player.apply_force(move_force.x, move_force.y);
                 }
             }
             Cmd::STOP => {}
@@ -61,14 +64,17 @@ fn main() {
 
         // apply global acceleration rules
         for entity in entities_now.iter_mut() {
-            entity.target_acc(0.0, 9.81);
-            if entity.grounded {
-                // simulates fricion
-                entity.target_vel(entity.vel.x * 0.9, entity.vel.y);
+            // assume the earth is beneath our feet
+            let gravity = entity.target_acc(0.0, 9.81);
+            entity.apply_force(gravity.x, gravity.y);
+
+            // simulate frictional forces
+            let friction: EuclidianVector = if entity.grounded {
+                entity.target_vel(entity.vel.x * 0.9, entity.vel.y)
             } else {
-                // simulates less friction when airborne
-                entity.target_vel(entity.vel.x * 0.99, entity.vel.y);
-            }
+                entity.target_vel(entity.vel.x * 0.99, entity.vel.y)
+            };
+            entity.apply_force(friction.x, friction.y);
         }
 
         // resolve physics calculations

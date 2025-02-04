@@ -15,8 +15,11 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
     'outer: for (i, entity_under_test) in entities_now.iter_mut().enumerate() {
         // initially assume the entity is not ontop of anything
         entity_under_test.grounded = false;
-        // determine average normal force applied to entity under test
+
+        // determine the various forces experienced by the entity under test
         let mut normal_force = EuclidianVector::new(0.0, 0.0);
+        let mut _collision_force = EuclidianVector::new(0.0, 0.0);
+
         'inner: for (j, entity_to_compare) in entities_then.iter().enumerate() {
             // early-exit conditions
             if entity_under_test.id == EntityType::Static {
@@ -30,7 +33,9 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
             entity_under_test.grounded = true;
 
             // resolve forces generated from velocity changes upon collision
-            entity_under_test.try_collide(entity_to_compare);
+            if let Some(collision_force) = entity_under_test.try_collide(entity_to_compare) {
+                entity_under_test.apply_force(collision_force.x, collision_force.y)
+            }
 
             // determine the normal force resulting from contact
             let you_to_me =
@@ -60,11 +65,11 @@ impl Entity {
     /// Determines whether this entity is colliding with some other entity, and if so,
     /// updates this entity with the forces experienced due to the change in velocity
     /// resulting from the collision.
-    pub fn try_collide(&mut self, target: &Entity) {
+    pub fn try_collide(&mut self, target: &Entity) -> Option<EuclidianVector> {
         //
         // are we even near each other?
         if !self.colliding(target) {
-            return;
+            return None;
         }
 
         // where are we relative to one another?
@@ -74,7 +79,7 @@ impl Entity {
         // are both our trajectories either orthogonal to or in the opposite direction of one-another?
         // if so, then we're NOT moving further into the collision, so there's no velocity changes.
         if self.vel.dot(&me_to_you) <= 0.0 && target.vel.dot(&you_to_me) <= 0.0 {
-            return;
+            return None;
         }
 
         // what forces do I experience due to velocity changes after colliding?
@@ -90,7 +95,7 @@ impl Entity {
             ),
             &target.mass,
         );
-        self.target_vel(resultant_vel.x, resultant_vel.y);
+        Some(self.target_vel(resultant_vel.x, resultant_vel.y))
     }
 }
 
