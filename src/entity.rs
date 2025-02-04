@@ -125,8 +125,8 @@ pub fn update(entities_then: &Vec<Entity>, entities_now: &mut Vec<Entity>) {
 }
 
 impl Entity {
-    /// apply a force vector to the associated entity to affect its acceleration vector
-    /// F = m * a
+    /// apply a force vector to the associated entity to affect its
+    /// acceleration vector on the next update (F = m * a)
     pub fn apply_force(&mut self, fx: f32, fy: f32) {
         self.input_force.x += fx;
         self.input_force.y += fy;
@@ -134,25 +134,22 @@ impl Entity {
         constraint(&mut self.input_force.y, -MAX_FORCE, MAX_FORCE);
     }
 
-    /// define a set-point acceleration that the entity should try to get to
-    pub fn target_acc(&mut self, ax: f32, ay: f32) {
-        let fx = self.mass * ax;
-        let fy = self.mass * ay;
-        self.apply_force(fx, fy);
+    /// returns the force required to drive the entity to the target acceleration
+    pub fn target_acc(&mut self, ax: f32, ay: f32) -> EuclidianVector {
+        EuclidianVector::new(self.mass * ax, self.mass * ay)
     }
 
-    /// define a set-point velocity that the entity should try to get to
-    pub fn target_vel(&mut self, vx: f32, vy: f32) {
-        let fx = self.mass * (vx - self.vel.x) / TIME_STEP;
-        let fy = self.mass * (vy - self.vel.y) / TIME_STEP;
-        self.apply_force(fx, fy);
+    /// returns the force required to drive the entity to the target velocity
+    pub fn target_vel(&mut self, vx: f32, vy: f32) -> EuclidianVector {
+        EuclidianVector::new(
+            self.mass * (vx - self.vel.x) / TIME_STEP,
+            self.mass * (vy - self.vel.y) / TIME_STEP,
+        )
     }
 
-    /// define a set-point position that the entity should try to get to
-    pub fn target_pos(&mut self, x: f32, y: f32) {
-        let vx = (self.pos.0 - x) / TIME_STEP;
-        let vy = (self.pos.1 - y) / TIME_STEP;
-        self.target_vel(vx, vy);
+    /// returns the force required to drive the entity to the target position
+    pub fn target_pos(&mut self, x: f32, y: f32) -> EuclidianVector {
+        self.target_vel((self.pos.0 - x) / TIME_STEP, (self.pos.1 - y) / TIME_STEP)
     }
 
     /// update entity position using motion equations and Newton's 2nd Law:
