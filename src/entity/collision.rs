@@ -27,7 +27,7 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
                 continue 'outer;
             }
             // fumbling in the dark; am I alone or are we just not touching?
-            if i == j || !entity_under_test.colliding(entity_to_compare) {
+            if i == j || entity_under_test.overlap(entity_to_compare) == (0.0, 0.0) {
                 continue 'inner;
             }
 
@@ -67,21 +67,16 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
 impl Entity {
     /// Determine whether this entity is colliding (intersecting) with the target entity
     /// using a hitbox of some description.
-    pub fn colliding(&self, target: &Entity) -> bool {
+    pub fn overlap(&self, target: &Entity) -> (f32, f32) {
         let my_hitbox = Square::new(&self.pos, &self.hit_radius);
         let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
-        my_hitbox.intersects(&thy_hitbox)
+        my_hitbox.overlap_size(&thy_hitbox)
     }
 
     /// Determines whether this entity is colliding with some other entity, and if so,
     /// updates this entity with the forces experienced due to the change in velocity
     /// resulting from the collision.
     pub fn try_collide(&mut self, target: &Entity) -> Option<EuclidianVector> {
-        //
-        // are we even near each other?
-        if !self.colliding(target) {
-            return None;
-        }
 
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
