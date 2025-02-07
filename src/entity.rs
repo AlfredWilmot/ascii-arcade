@@ -99,12 +99,12 @@ impl Default for Entity {
 }
 
 /// performs force and motion calculations on all the passed entities
-pub fn update(entities_then: &Vec<Entity>, entities_now: &mut Vec<Entity>) {
-    // handle additional forces generated due to a collision
-    collision::pairwise(entities_then, entities_now);
-
+pub fn update(entities_then: &Vec<Entity>, entities_now: &mut [Entity]) {
     // update motion parameters based on the applied forces
     for entity in entities_now.iter_mut() {
+        // handle additional forces generated due to a collision
+        collision::pairwise(entity, entities_then);
+
         if entity.id == EntityType::Static {
             continue;
         }

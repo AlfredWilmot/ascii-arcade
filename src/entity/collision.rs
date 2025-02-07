@@ -2,69 +2,63 @@ use core::f32;
 
 use super::vector::EuclidianVector;
 use crate::entity::collision_geometry::Square;
-use crate::entity::{Entities, Entity, EntityType};
+use crate::entity::{Entities, Entity};
 
 /// compares each entity on the scene against all other entities on the scene.
 /// WARNING: comparing each entity against ALL other entities on the scene
 /// yields the WORST-CASE compute performance (n^2) -- serves as the baseline.
-pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
-    'outer: for (i, entity_under_test) in entities_now.iter_mut().enumerate() {
-        // initially assume the entity is not ontop of anything
-        entity_under_test.grounded = false;
+pub fn pairwise(entity_under_test: &mut Entity, entities: &Entities) {
+    // initially assume the entity is not ontop of anything
+    entity_under_test.grounded = false;
 
-        // determine the various forces experienced by the entity under test
-        let mut normal_force = EuclidianVector::new(0.0, 0.0);
-        let mut collision_force = EuclidianVector::new(0.0, 0.0);
-        let mut encounters: u32 = 0;
+    // determine the various forces experienced by the entity under test
+    let mut normal_force = EuclidianVector::new(0.0, 0.0);
+    let mut collision_force = EuclidianVector::new(0.0, 0.0);
+    let mut encounters: u32 = 0;
 
-        'inner: for (j, entity_to_compare) in entities_then.iter().enumerate() {
-            // early-exit conditions
-            if entity_under_test.id == EntityType::Static {
-                continue 'outer;
+    for entity_to_compare in entities {
+        // fumbling in the dark; am I alone or are we just not touching?
+        if let Some(overlap) = entity_under_test.overlap(entity_to_compare) {
+            if entity_under_test.pos == entity_to_compare.pos {
+                continue;
             }
-            // fumbling in the dark; am I alone or are we just not touching?
-            if let Some(overlap) = entity_under_test.overlap(entity_to_compare) {
-                if i == j {
-                    continue 'inner;
-                }
-                // treat encounter as grounding condition for simplicity (for now)
+            // treat encounter as grounding condition for simplicity (for now)
+            encounters += 1;
+
+            // normal force due to the current encounter
+            let you_to_me =
+                EuclidianVector::from(entity_to_compare.pos, entity_under_test.pos).unit();
+
+            if overlap.0 >= overlap.1 {
                 entity_under_test.grounded = true;
-                encounters += 1;
+                normal_force.y += you_to_me.y;
+            } else {
+                normal_force.x += you_to_me.x;
+            }
 
-                // normal force due to the current encounter
-                let you_to_me =
-                    EuclidianVector::from(entity_to_compare.pos, entity_under_test.pos).unit();
-
+            // velocity change force due to the current encounter
+            if let Some(force) = entity_under_test.try_collide(entity_to_compare) {
                 if overlap.0 >= overlap.1 {
-                    normal_force.y += you_to_me.y;
+                    collision_force.y += force.y;
                 } else {
-                    normal_force.x += you_to_me.x;
-                }
-
-                // velocity change force due to the current encounter
-                if let Some(force) = entity_under_test.try_collide(entity_to_compare) {
-                    if overlap.0 >= overlap.1 {
-                        collision_force.y += force.y;
-                    } else {
-                        collision_force.x += force.x;
-                    }
+                    collision_force.x += force.x;
                 }
             }
         }
+    }
 
-        if encounters > 0 {
-            // determine normal force resulting from all encounters
-            let mass = entity_under_test.mass;
-            entity_under_test.apply_force(
-                mass * entity_under_test.acc.x.abs() * normal_force.unit().x,
-                2.0 * mass * entity_under_test.acc.y.abs() * normal_force.unit().y,
-            );
-            // determine average force due to velocity changes resulting from all encounters
-            entity_under_test.apply_force(
-                collision_force.x / (encounters as f32),
-                collision_force.y / (encounters as f32),
-            )
-        }
+    if encounters > 0 {
+        // determine normal force resulting from all encounters
+        let mass = entity_under_test.mass;
+        entity_under_test.apply_force(
+            mass * entity_under_test.acc.x.abs() * normal_force.unit().x,
+            2.0 * mass * entity_under_test.acc.y.abs() * normal_force.unit().y,
+        );
+        // determine average force due to velocity changes resulting from all encounters
+        entity_under_test.apply_force(
+            collision_force.x / (encounters as f32),
+            collision_force.y / (encounters as f32),
+        )
     }
 }
 
