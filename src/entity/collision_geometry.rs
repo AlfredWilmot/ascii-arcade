@@ -175,7 +175,7 @@ impl Circle<'_> {
 }
 
 /// represents a spatial coordinate
-struct Point(f32, f32);
+struct _Point(f32, f32);
 
 pub struct Square<'a> {
     /// A point that is at the geometric center.

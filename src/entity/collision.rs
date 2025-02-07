@@ -33,17 +33,15 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
 
             // for simplicity treating encounter as grounding condition for now
             entity_under_test.grounded = true;
-            encounters+=1;
+            encounters += 1;
             // velocity change force due to the current encounter
             if let Some(force) = entity_under_test.try_collide(entity_to_compare) {
-                collision_force.x+= force.x;
-                collision_force.y+= force.y;
+                collision_force.x += force.x;
+                collision_force.y += force.y;
             }
             // normal force due to the current encounter
-            let you_to_me = EuclidianVector::from(
-                entity_to_compare.pos,
-                entity_under_test.pos
-            ).unit();
+            let you_to_me =
+                EuclidianVector::from(entity_to_compare.pos, entity_under_test.pos).unit();
             normal_force.x += you_to_me.x;
             normal_force.y += you_to_me.y;
         }
@@ -57,8 +55,8 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
             );
             // determine average force due to velocity changes resulting from all encounters
             entity_under_test.apply_force(
-                collision_force.x/(encounters as f32),
-                collision_force.y/(encounters as f32)
+                collision_force.x / (encounters as f32),
+                collision_force.y / (encounters as f32),
             )
         }
     }
@@ -76,7 +74,11 @@ impl Entity {
     /// Determines whether this entity is colliding with some other entity, and if so,
     /// updates this entity with the forces experienced due to the change in velocity
     /// resulting from the collision.
-    pub fn try_collide(&mut self, target: &Entity) -> Option<EuclidianVector> {
+    fn try_collide(&mut self, target: &Entity) -> Option<EuclidianVector> {
+        // are we touching?
+        if self.overlap(target) == (0.0, 0.0) {
+            return None;
+        }
 
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
