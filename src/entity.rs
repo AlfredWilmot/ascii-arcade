@@ -10,8 +10,6 @@ use std::sync::LazyLock;
 
 use vector::EuclidianVector;
 
-use crate::scene::debug_print;
-
 pub const BACKGROUND: char = ' ';
 
 const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
@@ -102,19 +100,9 @@ impl Default for Entity {
 
 /// performs force and motion calculations on all the passed entities
 pub fn update(entities_then: &Vec<Entity>, entities_now: &mut Vec<Entity>) {
-    //
     // handle additional forces generated due to a collision
     collision::pairwise(entities_then, entities_now);
-    //
-    // handle reaction force due to force exerted onto target
-    // TODO: need to be able to treat collisions with multiple adjacen entities as single
-    // collision
-    for entity in entities_now.iter_mut() {
-        if entity.id == EntityType::Player {
-            debug_print(format!("{:.1?}", entity), 1);
-        }
-    }
-    //
+
     // update motion parameters based on the applied forces
     for entity in entities_now.iter_mut() {
         if entity.id == EntityType::Static {
