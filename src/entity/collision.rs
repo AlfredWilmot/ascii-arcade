@@ -18,37 +18,47 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
 
         // determine the various forces experienced by the entity under test
         let mut normal_force = EuclidianVector::new(0.0, 0.0);
-        let mut _collision_force = EuclidianVector::new(0.0, 0.0);
+        let mut collision_force = EuclidianVector::new(0.0, 0.0);
+        let mut encounters: u32 = 0;
 
         'inner: for (j, entity_to_compare) in entities_then.iter().enumerate() {
             // early-exit conditions
             if entity_under_test.id == EntityType::Static {
                 continue 'outer;
             }
-            // fumbling in the dark here; am I alone or are we just not touching?
+            // fumbling in the dark; am I alone or are we just not touching?
             if i == j || !entity_under_test.colliding(entity_to_compare) {
                 continue 'inner;
             }
-            // for simplicity treating collision as grounding condition for now
+            // for simplicity treating encounter as grounding condition for now
             entity_under_test.grounded = true;
-
-            // resolve forces generated from velocity changes upon collision
-            if let Some(collision_force) = entity_under_test.try_collide(entity_to_compare) {
-                entity_under_test.apply_force(collision_force.x, collision_force.y)
+            encounters+=1;
+            // velocity change force due to the current encounter
+            if let Some(force) = entity_under_test.try_collide(entity_to_compare) {
+                collision_force.x+= force.x;
+                collision_force.y+= force.y;
             }
-
-            // determine the normal force resulting from contact
-            let you_to_me =
-                EuclidianVector::from(entity_to_compare.pos, entity_under_test.pos).unit();
+            // normal force due to the current encounter
+            let you_to_me = EuclidianVector::from(
+                entity_to_compare.pos,
+                entity_under_test.pos
+            ).unit();
             normal_force.x += you_to_me.x;
             normal_force.y += you_to_me.y;
+        }
 
-            //BREAKPOINT
+        if encounters > 0 {
+            // determine normal force resulting from all encounters
             let mass = entity_under_test.mass;
             entity_under_test.apply_force(
                 mass * entity_under_test.acc.x.abs() * normal_force.unit().x,
                 2.0 * mass * entity_under_test.acc.y.abs() * normal_force.unit().y,
             );
+            // determine average force due to velocity changes resulting from all encounters
+            entity_under_test.apply_force(
+                collision_force.x/(encounters as f32),
+                collision_force.y/(encounters as f32)
+            )
         }
     }
 }
