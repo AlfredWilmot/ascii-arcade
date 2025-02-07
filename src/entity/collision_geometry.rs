@@ -174,6 +174,9 @@ impl Circle<'_> {
     }
 }
 
+/// represents a spatial coordinate
+struct Point(f32, f32);
+
 pub struct Square<'a> {
     /// A point that is at the geometric center.
     /// (See http://enwp.org/centroid)
@@ -200,7 +203,7 @@ impl Square<'_> {
         true
     }
 
-    /// returns the (length, width) of the rectangle that would be formed
+    /// returns the (width, height) of the rectangle that would be formed
     /// from the overlapping area between this Square and some other Square.
     pub fn overlap_size(&self, other: &Square) -> (f32, f32) {
         let dx = (self.centroid.0 - other.centroid.0).abs();

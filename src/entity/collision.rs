@@ -30,6 +30,7 @@ pub fn pairwise(entities_then: &Entities, entities_now: &mut Entities) {
             if i == j || !entity_under_test.colliding(entity_to_compare) {
                 continue 'inner;
             }
+
             // for simplicity treating encounter as grounding condition for now
             entity_under_test.grounded = true;
             encounters+=1;
