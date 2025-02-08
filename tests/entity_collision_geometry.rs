@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests_angle {
-    use ascii_arcade::entity::collision_geometry::*;
+    use ascii_arcade::entity::angles::*;
 
     fn generate_coords_around_point_every_45_deg(
         point: &(f32, f32),
