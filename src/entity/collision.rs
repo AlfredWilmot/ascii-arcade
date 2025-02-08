@@ -4,9 +4,7 @@ use super::vector::EuclidianVector;
 use crate::entity::collision_geometry::Square;
 use crate::entity::{Entities, Entity};
 
-/// compares each entity on the scene against all other entities on the scene.
-/// WARNING: comparing each entity against ALL other entities on the scene
-/// yields the WORST-CASE compute performance (n^2) -- serves as the baseline.
+/// Applies forces generated due to contact with other entities.
 pub fn pairwise(entity_under_test: &mut Entity, entities: &Entities) {
     // initially assume the entity is not ontop of anything
     entity_under_test.grounded = false;

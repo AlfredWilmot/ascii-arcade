@@ -99,15 +99,19 @@ impl Default for Entity {
 }
 
 /// performs force and motion calculations on all the passed entities
-pub fn update(entities_then: &Vec<Entity>, entities_now: &mut [Entity]) {
+pub fn update(entities: &mut [Entity]) {
+    // WARNING: comparing each entity against ALL other entities on the scene
+    // yields the WORST-CASE compute performance (n^2) -- serves as the baseline.
+    let comparison_entities = entities.to_owned();
+
     // update motion parameters based on the applied forces
-    for entity in entities_now.iter_mut() {
+    for entity in entities.iter_mut() {
         // statics don't move
         if entity.id == EntityType::Static {
             continue;
         }
         // handle forces generated due to contact with other entities
-        collision::pairwise(entity, entities_then);
+        collision::pairwise(entity, &comparison_entities);
         entity.update();
     }
 }

@@ -78,7 +78,7 @@ fn main() {
         }
 
         // resolve physics calculations
-        update(&entities_then, &mut entities_now);
+        update(&mut entities_now);
 
         // physics calculations done, render!
         scene::render(&entities_then, &entities_now);
