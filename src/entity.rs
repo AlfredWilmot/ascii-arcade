@@ -19,7 +19,7 @@ const MAX_ACC: f32 = 1_000.0;
 const MAX_FORCE: f32 = 5_000.0;
 const _MAX_MASS: f32 = 1_000.0;
 
-// initialise the window boundary at once runtime by checking the size of the terminal
+// initialise the window boundary once at runtime by checking the size of the terminal
 static WINDOW: LazyLock<(u16, u16)> =
     LazyLock::new(|| termion::terminal_size().unwrap_or(DEFAULT_WINDOW));
 
@@ -102,12 +102,12 @@ impl Default for Entity {
 pub fn update(entities_then: &Vec<Entity>, entities_now: &mut [Entity]) {
     // update motion parameters based on the applied forces
     for entity in entities_now.iter_mut() {
-        // handle additional forces generated due to a collision
-        collision::pairwise(entity, entities_then);
-
+        // statics don't move
         if entity.id == EntityType::Static {
             continue;
         }
+        // handle forces generated due to contact with other entities
+        collision::pairwise(entity, entities_then);
         entity.update();
     }
 }
@@ -227,10 +227,11 @@ impl Entity {
 fn constraint<T: PartialEq + PartialOrd>(val: &mut T, lower_limit: T, upper_limit: T) -> bool {
     if *val >= upper_limit {
         *val = upper_limit;
-        return true;
+        true
     } else if *val <= lower_limit {
         *val = lower_limit;
-        return true;
+        true
+    } else {
+        false
     }
-    false
 }
