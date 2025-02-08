@@ -72,7 +72,7 @@ mod tests_angle {
 
 #[cfg(test)]
 mod tests_rectangle {
-    use ascii_arcade::entity::collision_geometry::*;
+    use ascii_arcade::entity::primitives::*;
 
     #[test]
     fn test_correct_rectangle_overlap() {

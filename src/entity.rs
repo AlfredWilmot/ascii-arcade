@@ -1,6 +1,6 @@
 pub mod angles;
 pub mod collision;
-pub mod collision_geometry;
+pub mod primitives;
 pub mod vector;
 
 use core::{f32, fmt};

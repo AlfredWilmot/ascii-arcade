@@ -1,7 +1,7 @@
 use core::f32;
 
 use super::vector::EuclidianVector;
-use crate::entity::collision_geometry::Square;
+use crate::entity::primitives::Square;
 use crate::entity::{Entities, Entity};
 
 /// Applies forces generated due to contact with other entities.
