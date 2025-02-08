@@ -1,4 +1,4 @@
-use crate::entity::Entity;
+use crate::{entity::Entity, scene};
 use std::collections::HashMap;
 
 /// defines a coord-Entity HashMap for basic spatial queries
@@ -37,7 +37,7 @@ pub fn remove(map: &mut EntityMap, x: u16, y: u16) -> Option<Entity> {
 
 /// moves ownership of the entity from the caller back into the scene
 pub fn insert(map: &mut EntityMap, entity: Entity) {
-    _ = map.insert(entity.coordinates(), entity)
+    _ = map.insert(scene::term_coords(entity.pos), entity)
 }
 
 /// creates a coordinate-queryable hashmap of entities from a vector of entities
@@ -46,6 +46,6 @@ pub fn make_entity_map(entities: &[Entity]) -> EntityMap {
         .to_owned()
         .clone()
         .into_iter()
-        .map(|ent| (ent.coordinates(), ent))
+        .map(|entity| (scene::term_coords(entity.pos), entity))
         .collect()
 }

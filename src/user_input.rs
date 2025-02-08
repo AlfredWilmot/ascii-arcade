@@ -4,6 +4,8 @@ use std::{io, thread};
 use termion::event::{Event, Key, MouseButton, MouseEvent};
 use termion::input::TermRead;
 
+use crate::entity::EntityType;
+
 /// creates a thread for monitoring keystrokes and forwarding
 /// them over a channel to be ingested by a separate thread
 /// https://stackoverflow.com/a/55201400
@@ -26,7 +28,7 @@ pub enum Cmd {
     STOP,
     MOVE(i8, i8),
     DEBUG(Event),
-    SPAWN(u16, u16),
+    SPAWN(u16, u16, EntityType),
     EXIT,
 }
 
@@ -46,7 +48,12 @@ pub fn keyboard_control(rx: &mpsc::Receiver<termion::event::Event>) -> Cmd {
                     other_key => Cmd::DEBUG(Event::Key(other_key)),
                 },
 
-                Event::Mouse(MouseEvent::Press(MouseButton::Left, x, y)) => Cmd::SPAWN(x, y),
+                Event::Mouse(MouseEvent::Press(MouseButton::Left, x, y)) => {
+                    Cmd::SPAWN(x, y, EntityType::Npc)
+                }
+                Event::Mouse(MouseEvent::Press(MouseButton::Right, x, y)) => {
+                    Cmd::SPAWN(x, y, EntityType::Static)
+                }
                 other_event => {
                     // other keys
                     Cmd::DEBUG(other_event)
