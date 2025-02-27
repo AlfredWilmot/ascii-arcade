@@ -33,12 +33,12 @@ echo "${BINARY_NAME} matches PID ${RUNNING_BINARY_PID}"
 # and feed these into the gdb command below
 GDB_PARAMS=''
 while IFS= read -r breakpoint; do
-  if [ ! -z "${breakpoint}" ]; then
+  if [ -n "${breakpoint}" ]; then
     GDB_PARAMS+="-ex 'break ${breakpoint}' "
   fi
 done <<< "$(grep -ERn '(//|#) *BREAKPOINT' src/ | awk '{print $1}' | sed 's/.$//')"
 GDB_PARAMS+="-ex 'continue'"
 
 # attempt to attach debugger to the running process
-CMD="sudo gdb "${GDB_PARAMS}" -q attach "${RUNNING_BINARY_PID}""
+CMD="sudo gdb ${GDB_PARAMS} -q attach ${RUNNING_BINARY_PID}"
 eval "set -x; ${CMD}"
