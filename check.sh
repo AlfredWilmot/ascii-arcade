@@ -19,7 +19,7 @@ cargo clippy --all-targets --all-features --workspace -- -D warnings
 
 # run all unit-tests
 _header "Running unit-tests"
-cargo test --all-features --workspace --doc
+cargo test --all
 
 # REFERENCES:
 # - https://github.com/rust-github/template/blob/main/template/.github/workflows/ci.yml
