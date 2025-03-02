@@ -107,6 +107,16 @@ impl Entity {
         }
     }
 
+    /// Apply normal force if accelerating towards target.
+    fn _try_normal(&mut self, target: &Entity) -> Option<EuclidianVector> {
+        let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
+        let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
+        if self.acc.dot(&me_to_you) <= 0.0 && target.acc.dot(&you_to_me) <= 0.0 {
+            return None;
+        }
+        None
+    }
+
     /// Determines whether this entity is colliding with some other entity, and if so,
     /// updates this entity with the forces experienced due to the change in velocity
     /// resulting from the collision.
