@@ -10,53 +10,45 @@ pub fn pairwise(entity_under_test: &mut Entity, entities: &Entities) {
     entity_under_test.grounded = false;
 
     // determine the various forces experienced by the entity under test
-    let mut normal_force = EuclidianVector::new(0.0, 0.0);
+    let mut _normal_force = EuclidianVector::new(0.0, 0.0);
     let mut collision_force = EuclidianVector::new(0.0, 0.0);
+    let mut displacement_force = EuclidianVector::new(0.0, 0.0);
     let mut encounters: u32 = 0;
 
     for entity_to_compare in entities {
         // fumbling in the dark; am I alone or are we just not touching?
-        if let Some(overlap) = entity_under_test.overlap(entity_to_compare) {
+        if entity_under_test.overlap(entity_to_compare).is_some() {
             if entity_under_test.pos == entity_to_compare.pos {
                 continue;
             }
             // treat encounter as grounding condition for simplicity (for now)
             encounters += 1;
 
-            // normal force due to the current encounter
-            let you_to_me =
-                EuclidianVector::from(entity_to_compare.pos, entity_under_test.pos).unit();
-
-            if overlap.0 >= overlap.1 {
-                entity_under_test.grounded = true;
-                normal_force.y += you_to_me.y;
-            } else {
-                normal_force.x += you_to_me.x;
+            // position change force due to the current encounter
+            if let Some(force) = entity_under_test.try_displace(entity_to_compare) {
+                displacement_force.x += force.x;
+                displacement_force.y += force.y;
             }
-
             // velocity change force due to the current encounter
             if let Some(force) = entity_under_test.try_collide(entity_to_compare) {
-                if overlap.0 >= overlap.1 {
-                    collision_force.y += force.y;
-                } else {
-                    collision_force.x += force.x;
-                }
+                collision_force.x += force.x;
+                collision_force.y += force.y;
             }
         }
     }
 
     if encounters > 0 {
+        //BREAKPOINT
         // determine normal force resulting from all encounters
-        let mass = entity_under_test.mass;
         entity_under_test.apply_force(
-            mass * entity_under_test.acc.x.abs() * normal_force.unit().x,
-            2.0 * mass * entity_under_test.acc.y.abs() * normal_force.unit().y,
+            displacement_force.x / (encounters as f32),
+            displacement_force.y / (encounters as f32),
         );
         // determine average force due to velocity changes resulting from all encounters
         entity_under_test.apply_force(
             collision_force.x / (encounters as f32),
             collision_force.y / (encounters as f32),
-        )
+        );
     }
 }
 
@@ -71,6 +63,47 @@ impl Entity {
             None
         } else {
             Some(result)
+        }
+    }
+
+    /// Apply a displacement force based on degree of overlap, and relative position, between self and target
+    fn try_displace(&mut self, target: &Entity) -> Option<EuclidianVector> {
+        if let Some(overlap) = self.overlap(target) {
+            // overlap primarily along y-axis indiciates horizontal collision
+            let dx: f32 = if overlap.1 >= overlap.0 {
+                // target is to my right
+                if self.pos.0 < target.pos.0 {
+                    self.pos.0 - overlap.0
+
+                // target is to my left
+                } else {
+                    self.pos.0 + overlap.0
+                }
+            } else {
+                0.0
+            };
+
+            // overlap primarily along x-axis indiciates vertical collision
+            let dy: f32 = if overlap.1 <= overlap.0 {
+                // target is "beneath" me (y-axis points "downwards"), so I should displace "upwards"
+                if self.pos.1 < target.pos.1 {
+                    self.pos.1 - overlap.1
+
+                // target is "above" me, so I should displace "downwards"
+                } else {
+                    self.pos.1 + overlap.1
+                }
+            } else {
+                0.0
+            };
+
+            if dx != 0.0 || dy != 0.0 {
+                Some(self.target_pos(dx, dy))
+            } else {
+                None
+            }
+        } else {
+            None
         }
     }
 
