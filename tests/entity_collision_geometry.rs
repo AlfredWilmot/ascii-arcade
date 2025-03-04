@@ -90,13 +90,13 @@ mod tests_rectangle {
         let rect_btm_right = Square::new(&(1.0, 1.0), &1.0);
 
         // is the overlap of each rectangle with the reference one as exptected?
-        assert!(rect_ref.overlap_size(&rect_right) == (1.0, 2.0));
-        assert!(rect_ref.overlap_size(&rect_top_right) == (1.0, 1.0));
-        assert!(rect_ref.overlap_size(&rect_top) == (2.0, 1.0));
-        assert!(rect_ref.overlap_size(&rect_top_left) == (1.0, 1.0));
-        assert!(rect_ref.overlap_size(&rect_left) == (1.0, 2.0));
-        assert!(rect_ref.overlap_size(&rect_btm_left) == (1.0, 1.0));
-        assert!(rect_ref.overlap_size(&rect_btm) == (2.0, 1.0));
-        assert!(rect_ref.overlap_size(&rect_btm_right) == (1.0, 1.0));
+        assert!(rect_ref.overlap(&rect_right).unwrap() == (1.0, 2.0));
+        assert!(rect_ref.overlap(&rect_top_right).unwrap() == (1.0, 1.0));
+        assert!(rect_ref.overlap(&rect_top).unwrap() == (2.0, 1.0));
+        assert!(rect_ref.overlap(&rect_top_left).unwrap() == (1.0, 1.0));
+        assert!(rect_ref.overlap(&rect_left).unwrap() == (1.0, 2.0));
+        assert!(rect_ref.overlap(&rect_btm_left).unwrap() == (1.0, 1.0));
+        assert!(rect_ref.overlap(&rect_btm).unwrap() == (2.0, 1.0));
+        assert!(rect_ref.overlap(&rect_btm_right).unwrap() == (1.0, 1.0));
     }
 }
