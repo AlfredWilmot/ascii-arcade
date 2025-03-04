@@ -5,31 +5,36 @@ use crate::entity::primitives::Square;
 use crate::entity::{Entities, Entity};
 
 /// Applies forces generated due to contact with other entities.
-pub fn pairwise(this_entity: &mut Entity, other_entities: &Entities) {
-    for that_entity in other_entities {
-        // define hitboxes
-        let this_inner_hitbox = Square::new(&this_entity.pos, &this_entity.hit_radius);
-        let that_inner_hitbox = Square::new(&that_entity.pos, &that_entity.hit_radius);
-        //let this_outer_hitbox = Square::new(&this_entity.pos, &(this_entity.hit_radius*1.5));
-        //let that_outer_hitbox = Square::new(&that_entity.pos, &(that_entity.hit_radius*1.5));
+pub fn pairwise(entity: &mut Entity, other_entities: &Entities) {
+    for other_entity in other_entities {
+        // define inner hitboxes for contact force calculations
+        let hitbox_inner_a = Square::new(&entity.pos, &entity.hit_radius);
+        let hitbox_inner_b = Square::new(&other_entity.pos, &other_entity.hit_radius);
 
-        if this_inner_hitbox.overlap(&that_inner_hitbox).is_some() {
-            // velocity change force due to the current encounter
-            if let Some(force) = this_entity.collision_force(that_entity) {
-                this_entity.apply_force(force.x, force.y);
+        // forces applied due to velocity change due to contact with other entity
+        if hitbox_inner_a.overlap(&hitbox_inner_b).is_some() {
+            if let Some(force) = entity.collision_force(other_entity) {
+                entity.apply_force(force.x, force.y);
             }
         }
 
-        // position change force due to the current encounter
-        //if let Some(force) = entity_under_test.sticking_force(entity_to_compare) {
-        //    entity_under_test.apply_force(force.x, force.y);
-        //}
+        // define outer hitboxes for proximity force calculations
+        let outer_hit_radius_a = entity.hit_radius * 1.5;
+        let outer_hit_radius_b = other_entity.hit_radius * 1.5;
+        let hitbox_outer_a = Square::new(&entity.pos, &outer_hit_radius_a);
+        let hitbox_outer_b = Square::new(&entity.pos, &outer_hit_radius_b);
+
+        if hitbox_outer_a.overlap(&hitbox_outer_b).is_some() {
+            if let Some(force) = entity.sticking_force(other_entity) {
+                entity.apply_force(force.x, force.y);
+            }
+        }
     }
 }
 
 impl Entity {
     /// Apply a displacement force based on degree of overlap, and relative position, between self and target
-    fn _sticking_force(&mut self, target: &Entity) -> Option<EuclidianVector> {
+    fn sticking_force(&mut self, target: &Entity) -> Option<EuclidianVector> {
         let _me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
         let _inner_hitbox: f32 = self.hit_radius;
 
