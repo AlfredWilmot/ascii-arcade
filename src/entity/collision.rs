@@ -5,122 +5,41 @@ use crate::entity::primitives::Square;
 use crate::entity::{Entities, Entity};
 
 /// Applies forces generated due to contact with other entities.
-pub fn pairwise(entity_under_test: &mut Entity, entities: &Entities) {
-    // initially assume the entity is not ontop of anything
-    entity_under_test.grounded = false;
+pub fn pairwise(this_entity: &mut Entity, other_entities: &Entities) {
+    for that_entity in other_entities {
+        // define hitboxes
+        let this_inner_hitbox = Square::new(&this_entity.pos, &this_entity.hit_radius);
+        let that_inner_hitbox = Square::new(&that_entity.pos, &that_entity.hit_radius);
+        //let this_outer_hitbox = Square::new(&this_entity.pos, &(this_entity.hit_radius*1.5));
+        //let that_outer_hitbox = Square::new(&that_entity.pos, &(that_entity.hit_radius*1.5));
 
-    // determine the various forces experienced by the entity under test
-    let mut _normal_force = EuclidianVector::new(0.0, 0.0);
-    let mut collision_force = EuclidianVector::new(0.0, 0.0);
-    let mut displacement_force = EuclidianVector::new(0.0, 0.0);
-    let mut encounters: u32 = 0;
-
-    for entity_to_compare in entities {
-        // fumbling in the dark; am I alone or are we just not touching?
-        if entity_under_test.overlap(entity_to_compare).is_some() {
-            if entity_under_test.pos == entity_to_compare.pos {
-                continue;
-            }
-            // treat encounter as grounding condition for simplicity (for now)
-            encounters += 1;
-
-            // position change force due to the current encounter
-            if let Some(force) = entity_under_test.try_displace(entity_to_compare) {
-                displacement_force.x += force.x;
-                displacement_force.y += force.y;
-            }
+        if this_inner_hitbox.overlap(&that_inner_hitbox).is_some() {
             // velocity change force due to the current encounter
-            if let Some(force) = entity_under_test.try_collide(entity_to_compare) {
-                collision_force.x += force.x;
-                collision_force.y += force.y;
+            if let Some(force) = this_entity.collision_force(that_entity) {
+                this_entity.apply_force(force.x, force.y);
             }
         }
-    }
 
-    if encounters > 0 {
-        //BREAKPOINT
-        // determine normal force resulting from all encounters
-        entity_under_test.apply_force(
-            displacement_force.x / (encounters as f32),
-            displacement_force.y / (encounters as f32),
-        );
-        // determine average force due to velocity changes resulting from all encounters
-        entity_under_test.apply_force(
-            collision_force.x / (encounters as f32),
-            collision_force.y / (encounters as f32),
-        );
+        // position change force due to the current encounter
+        //if let Some(force) = entity_under_test.sticking_force(entity_to_compare) {
+        //    entity_under_test.apply_force(force.x, force.y);
+        //}
     }
 }
 
 impl Entity {
-    /// Determine whether this entity is colliding (intersecting) with the target entity
-    /// using a hitbox of some description.
-    pub fn overlap(&self, target: &Entity) -> Option<(f32, f32)> {
-        let my_hitbox = Square::new(&self.pos, &self.hit_radius);
-        let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
-        let result = my_hitbox.overlap_size(&thy_hitbox);
-        if result == (0.0, 0.0) {
-            None
-        } else {
-            Some(result)
-        }
-    }
-
     /// Apply a displacement force based on degree of overlap, and relative position, between self and target
-    fn try_displace(&mut self, target: &Entity) -> Option<EuclidianVector> {
-        if let Some(overlap) = self.overlap(target) {
-            // overlap primarily along y-axis indiciates horizontal collision
-            let dx: f32 = if overlap.1 >= overlap.0 {
-                // target is to my right
-                if self.pos.0 < target.pos.0 {
-                    self.pos.0 - overlap.0
+    fn _sticking_force(&mut self, target: &Entity) -> Option<EuclidianVector> {
+        let _me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
+        let _inner_hitbox: f32 = self.hit_radius;
 
-                // target is to my left
-                } else {
-                    self.pos.0 + overlap.0
-                }
-            } else {
-                0.0
-            };
-
-            // overlap primarily along x-axis indiciates vertical collision
-            let dy: f32 = if overlap.1 <= overlap.0 {
-                // target is "beneath" me (y-axis points "downwards"), so I should displace "upwards"
-                if self.pos.1 < target.pos.1 {
-                    self.pos.1 - overlap.1
-
-                // target is "above" me, so I should displace "downwards"
-                } else {
-                    self.pos.1 + overlap.1
-                }
-            } else {
-                0.0
-            };
-
-            if dx != 0.0 || dy != 0.0 {
-                Some(self.target_pos(dx, dy))
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
-
-    /// Apply normal force if accelerating towards target.
-    fn _try_normal(&mut self, target: &Entity) -> Option<EuclidianVector> {
-        let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
-        let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
-        if self.acc.dot(&me_to_you) <= 0.0 && target.acc.dot(&you_to_me) <= 0.0 {
-            return None;
-        }
         None
     }
 
     /// Determines whether this entity is colliding with some other entity, and if so,
     /// updates this entity with the forces experienced due to the change in velocity
     /// resulting from the collision.
-    fn try_collide(&mut self, target: &Entity) -> Option<EuclidianVector> {
+    fn collision_force(&mut self, target: &Entity) -> Option<EuclidianVector> {
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
         let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();
