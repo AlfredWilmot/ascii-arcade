@@ -59,7 +59,6 @@ pub struct Entity {
 
     // forces applied to and exerted by entity
     pub input_force: EuclidianVector,
-    pub reaction_force: EuclidianVector,
 
     // misc fields (subject to imminent change)
     pub grounded: bool,
@@ -92,7 +91,6 @@ impl Default for Entity {
             acc: EuclidianVector::new(0.0, 0.0),
             mass: 1.0,
             input_force: EuclidianVector::new(0.0, 0.0),
-            reaction_force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
         }
