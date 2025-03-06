@@ -62,16 +62,18 @@ impl Square<'_> {
     /// returns the (width, height) of the rectangle that would be formed
     /// from the overlapping area between this Square and some other Square.
     pub fn overlap(&self, other: &Square) -> Option<(f32, f32)> {
+        let deadzone: f32 = 0.01;
+
         let dx = (self.centroid.0 - other.centroid.0).abs();
         let dy = (self.centroid.1 - other.centroid.1).abs();
 
         let x_overlap = self.apothem + other.apothem - dx;
         let y_overlap = self.apothem + other.apothem - dy;
 
-        if x_overlap <= 0.0 || y_overlap <= 0.0 {
-            return None;
+        if x_overlap <= deadzone || y_overlap <= deadzone {
+            None
+        } else {
+            Some((x_overlap, y_overlap))
         }
-
-        Some((x_overlap, y_overlap))
     }
 }
