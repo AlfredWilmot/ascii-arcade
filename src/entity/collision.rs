@@ -2,34 +2,63 @@ use core::f32;
 
 use super::vector::EuclidianVector;
 use crate::entity::primitives::Square;
-use crate::entity::{Entities, Entity};
+use crate::entity::Entity;
 
 /// Applies forces generated due to contact with other entities.
-pub fn pairwise(entity: &mut Entity, other_entities: &Entities) {
+pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     entity.grounded = false;
+
+    // gathers a list of references to entities colliding with the entity under test
+    let mut colliders: Vec<&Entity> = Vec::new();
 
     for other_entity in other_entities {
         if entity.pos == other_entity.pos {
             continue;
         }
-        // define inner hitboxes for contact force calculations
+        // define hitboxes to determine if entitie are colliding
         let hitbox_a = Square::new(&entity.pos, &entity.hit_radius);
         let hitbox_b = Square::new(&other_entity.pos, &other_entity.hit_radius);
 
-        // forces applied due to velocity change due to contact with other entity
         if hitbox_a.overlap(&hitbox_b).is_some() {
-            if let Some(force) = entity.collision_force(other_entity) {
-                entity.grounded = true;
-                entity.apply_force(force.x, force.y);
-            }
+            colliders.push(other_entity);
         }
+    }
+
+    // no colliders detected, exit
+    if colliders.is_empty() {
+        return;
+    }
+    let ratio: f32 = 1.0 / colliders.len() as f32;
+
+    // create a single equivalent collider from all the colliding entities
+    let mass_avg: f32 = colliders.iter().map(|e| e.mass).sum();
+    let mut pos_avg: (f32, f32) = (0.0, 0.0);
+    let mut vel_avg = EuclidianVector::new(0.0, 0.0);
+    let mut acc_avg = EuclidianVector::new(0.0, 0.0);
+
+    for collider in &colliders[..] {
+        pos_avg = (pos_avg.0 + collider.pos.0, pos_avg.1 + collider.pos.1);
+        vel_avg += collider.vel.clone();
+        acc_avg += collider.acc.clone();
+    }
+
+    let equivalent_single_entity = Entity {
+        mass: mass_avg * ratio,
+        pos: (pos_avg.0 * ratio, pos_avg.1 * ratio),
+        vel: vel_avg * ratio,
+        acc: acc_avg * ratio,
+        ..Entity::default()
+    };
+
+    // forces applied due to velocity changes
+    if let Some(force) = entity.collision_force(&equivalent_single_entity) {
+        entity.grounded = true;
+        entity.apply_force(force.x, force.y);
     }
 }
 
 impl Entity {
-    /// Determines whether this entity is colliding with some other entity, and if so,
-    /// updates this entity with the forces experienced due to the change in velocity
-    /// resulting from the collision.
+    /// Force generated due to velocity changes during a collision.
     fn collision_force(&mut self, target: &Entity) -> Option<EuclidianVector> {
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
