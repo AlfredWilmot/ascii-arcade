@@ -140,7 +140,7 @@ impl Entity {
 
     /// returns the force required to drive the entity to the target position
     pub fn target_pos(&mut self, x: f32, y: f32) -> EuclidianVector {
-        self.target_vel((self.pos.0 - x) / TIME_STEP, (self.pos.1 - y) / TIME_STEP)
+        self.target_vel((x - self.pos.0) / TIME_STEP, (self.pos.1 - y) / TIME_STEP)
     }
 
     /// update entity position using motion equations and Newton's 2nd Law:
