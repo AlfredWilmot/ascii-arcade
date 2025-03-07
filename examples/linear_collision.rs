@@ -48,7 +48,7 @@ fn main() {
                     } else {
                         player.target_vel(20.0 * x as f32, 10.0 * y as f32)
                     };
-                    player.apply_force(move_force.x, move_force.y);
+                    player.apply_force(move_force);
                 }
             }
             Cmd::STOP => {}
@@ -66,7 +66,7 @@ fn main() {
         for entity in entities_now.iter_mut() {
             // assume the earth is beneath our feet
             let gravity = entity.target_acc(0.0, 9.81);
-            entity.apply_force(gravity.x, gravity.y);
+            entity.apply_force(gravity);
 
             // simulate frictional forces
             let friction: EuclidianVector = if entity.grounded {
@@ -74,7 +74,7 @@ fn main() {
             } else {
                 entity.target_vel(entity.vel.x * 0.99, entity.vel.y)
             };
-            entity.apply_force(friction.x, friction.y);
+            entity.apply_force(friction);
         }
 
         // resolve physics calculations

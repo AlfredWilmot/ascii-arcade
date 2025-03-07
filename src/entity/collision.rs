@@ -53,7 +53,7 @@ pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     // forces applied due to velocity changes
     if let Some(force) = entity.collision_force(&equivalent_single_entity) {
         entity.grounded = true;
-        entity.apply_force(force.x, force.y);
+        entity.apply_force(force);
     }
 }
 

@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod test_entity_vector {
-    use ascii_arcade::entity::*;
+    use ascii_arcade::entity::{vector::EuclidianVector, *};
 
     fn _make_test_data() -> Vec<Entity> {
         let mut a = Entity::new(EntityType::Npc, (1.0, 1.0));
         let b = Entity::new(EntityType::Npc, (2.0, 1.0));
-        a.apply_force(100.0, 0.0);
+        a.apply_force(EuclidianVector::new(100.0, 0.0));
         vec![a.clone(), b.clone()]
     }
 

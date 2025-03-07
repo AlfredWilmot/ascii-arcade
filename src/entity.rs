@@ -118,9 +118,9 @@ pub fn update(entities: &mut [Entity]) {
 impl Entity {
     /// apply a force vector to the associated entity to affect its
     /// acceleration vector on the next update (F = m * a)
-    pub fn apply_force(&mut self, fx: f32, fy: f32) {
-        self.input_force.x += fx;
-        self.input_force.y += fy;
+    pub fn apply_force(&mut self, force: EuclidianVector) {
+        self.input_force.x += force.x;
+        self.input_force.y += force.y;
         constraint(&mut self.input_force.x, -MAX_FORCE, MAX_FORCE);
         constraint(&mut self.input_force.y, -MAX_FORCE, MAX_FORCE);
     }
