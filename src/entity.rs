@@ -9,6 +9,7 @@ use std::cmp::PartialOrd;
 use std::fmt::Debug;
 use std::sync::LazyLock;
 
+use uuid::Uuid;
 use vector::EuclidianVector;
 
 pub const BACKGROUND: char = ' ';
@@ -48,6 +49,7 @@ pub enum EntityType {
 pub struct Entity {
     // these affect both physics calculations and rendering behaviour
     pub id: EntityType,
+    pub uuid: Uuid,
     pub state: EntityState,
 
     // these drive physics calculations (unlikely to change much)
@@ -85,6 +87,7 @@ impl Default for Entity {
     fn default() -> Self {
         Self {
             id: EntityType::Npc,
+            uuid: Uuid::new_v4(),
             state: EntityState::Alive,
             pos: (0.0, 0.0),
             vel: EuclidianVector::new(0.0, 0.0),

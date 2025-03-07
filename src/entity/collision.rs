@@ -12,7 +12,7 @@ pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     let mut colliders: Vec<&Entity> = Vec::new();
 
     for other_entity in other_entities {
-        if entity.pos == other_entity.pos {
+        if entity.uuid == other_entity.uuid {
             continue;
         }
         // define hitboxes to determine if entitie are colliding
@@ -53,7 +53,7 @@ pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     // forces applied due to velocity changes
     if let Some(force) = entity.collision_force(&equivalent_single_entity) {
         entity.grounded = true;
-        entity.apply_force(force);
+        entity.apply_force(force); //BREAKPOINT
     }
 }
 
