@@ -8,6 +8,8 @@ use crate::entity::Entity;
 pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     entity.grounded = false;
 
+    let entity_hitbox = Square::new(&entity.pos, &entity.hit_radius);
+
     // gathers a list of references to entities colliding with the entity under test
     let mut colliders: Vec<&Entity> = Vec::new();
 
@@ -16,10 +18,9 @@ pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
             continue;
         }
         // define hitboxes to determine if entitie are colliding
-        let hitbox_a = Square::new(&entity.pos, &entity.hit_radius);
-        let hitbox_b = Square::new(&other_entity.pos, &other_entity.hit_radius);
+        let other_hitbox = Square::new(&other_entity.pos, &other_entity.hit_radius);
 
-        if hitbox_a.overlap(&hitbox_b).is_some() {
+        if entity_hitbox.overlap(&other_hitbox).is_some() {
             colliders.push(other_entity);
         }
     }
@@ -28,6 +29,8 @@ pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     if colliders.is_empty() {
         return;
     }
+
+    // used to average values
     let ratio: f32 = 1.0 / colliders.len() as f32;
 
     // create a single equivalent collider from all the colliding entities
