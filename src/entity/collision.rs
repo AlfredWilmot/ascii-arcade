@@ -8,7 +8,8 @@ use crate::entity::Entity;
 pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     entity.grounded = false;
 
-    let entity_hitbox = Square::new(&entity.pos, &entity.hit_radius);
+    let _entity = entity.clone();
+    let entity_hitbox = Square::new(&_entity.pos, &_entity.hit_radius);
 
     // gathers a list of references to entities colliding with the entity under test
     let mut colliders: Vec<&Entity> = Vec::new();
@@ -53,11 +54,39 @@ pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
         ..Entity::default()
     };
 
-    // forces applied due to velocity changes
-    if let Some(force) = entity.collision_force(&equivalent_single_entity) {
+    let other_hitbox = &Square::new(
+        &equivalent_single_entity.pos,
+        &equivalent_single_entity.hit_radius,
+    );
+    let me_to_you = EuclidianVector::from(entity.pos, equivalent_single_entity.pos).unit();
+
+    if let Some(overlap) = entity_hitbox.overlap(other_hitbox) {
         entity.grounded = true;
-        entity.apply_force(force); //BREAKPOINT
+
+        // as an approximation, the direction of overlap can (in general) be treated
+        // as orthogonal to the largest overlap side.
+        if me_to_you.dot(&entity.vel) > 0.0 {
+            if overlap.0 >= overlap.1 {
+                if me_to_you.y > 0.0 {
+                    entity.pos.1 -= overlap.1;
+                } else {
+                    entity.pos.1 += overlap.1;
+                }
+            }
+            if overlap.1 >= overlap.0 {
+                if me_to_you.x > 0.0 {
+                    entity.pos.0 -= overlap.0;
+                } else {
+                    entity.pos.0 += overlap.0;
+                }
+            }
+        }
     }
+
+    // forces applied due to velocity changes
+    //if let Some(force) = entity.collision_force(&equivalent_single_entity) {
+    //    entity.apply_force(force); //BREAKPOINT
+    //}
 }
 
 impl Entity {
