@@ -4,6 +4,8 @@ use super::vector::EuclidianVector;
 use crate::entity::primitives::Square;
 use crate::entity::Entity;
 
+const COLLISION_TRIGGER_VEL: f32 = 10.0;
+
 /// Applies forces generated due to contact with other entities.
 pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     entity.grounded = false;
@@ -63,17 +65,37 @@ pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
     if let Some(overlap) = entity_hitbox.overlap(other_hitbox) {
         entity.grounded = true;
 
+        let collide = entity
+            .collision_force(&equivalent_single_entity)
+            .unwrap_or(EuclidianVector::new(0.0, 0.0));
+
         // as an approximation, the direction of overlap can (in general) be treated
         // as orthogonal to the largest overlap side.
-        if me_to_you.dot(&entity.vel) > 0.0 {
-            if overlap.0 >= overlap.1 {
+
+        // colliding vertically
+        if overlap.0 >= overlap.1 {
+            if entity.vel.y.abs() >= COLLISION_TRIGGER_VEL
+                || equivalent_single_entity.vel.y.abs() >= COLLISION_TRIGGER_VEL
+            {
+                entity.apply_force(EuclidianVector::new(0.0, collide.y));
+            }
+            if me_to_you.dot(&entity.vel) > 0.0 {
                 if me_to_you.y > 0.0 {
                     entity.pos.1 -= overlap.1;
                 } else {
                     entity.pos.1 += overlap.1;
                 }
             }
-            if overlap.1 >= overlap.0 {
+        }
+
+        // colliding horizontally
+        if overlap.1 >= overlap.0 {
+            if entity.vel.x.abs() >= COLLISION_TRIGGER_VEL
+                || equivalent_single_entity.vel.x.abs() >= COLLISION_TRIGGER_VEL
+            {
+                entity.apply_force(EuclidianVector::new(collide.x, 0.0));
+            }
+            if me_to_you.dot(&entity.vel) > 0.0 {
                 if me_to_you.x > 0.0 {
                     entity.pos.0 -= overlap.0;
                 } else {
@@ -82,11 +104,6 @@ pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
             }
         }
     }
-
-    // forces applied due to velocity changes
-    //if let Some(force) = entity.collision_force(&equivalent_single_entity) {
-    //    entity.apply_force(force); //BREAKPOINT
-    //}
 }
 
 impl Entity {
