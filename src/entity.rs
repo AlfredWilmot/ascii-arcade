@@ -145,8 +145,8 @@ impl Entity {
         let (vx, vy) = (self.vel.x, self.vel.y);
         let m = self.mass;
         EuclidianVector::new(
-            (2.0 / 3.0 ) * (x - x0 - (vx * TIME_STEP) ) * m / ( TIME_STEP * TIME_STEP ),
-            (2.0 / 3.0 ) * (y - y0 - (vy * TIME_STEP) ) * m / ( TIME_STEP * TIME_STEP )
+            (2.0 / 3.0) * (x - x0 - (vx * TIME_STEP)) * m / (TIME_STEP * TIME_STEP),
+            (2.0 / 3.0) * (y - y0 - (vy * TIME_STEP)) * m / (TIME_STEP * TIME_STEP),
         )
     }
 
