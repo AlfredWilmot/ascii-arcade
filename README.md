@@ -13,7 +13,7 @@
 
 | `linear_collision` |
 | --- |
-| <img src="./examples/gifs/linear_collision_demo.gif" alt="linear collision" style="width:600px;height:200px;"> | 
+| <img src="./examples/gifs/linear_collision_demo.gif" alt="linear collision" style="width:400px;height:250px;"> |
 | (execute) `cargo run --example linear_collision` |
 | (controls) `move player (wasd), spawn entity (LMB), exit (q)` |
 
