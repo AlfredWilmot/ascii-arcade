@@ -38,18 +38,20 @@ fn main() {
         // apply control signals to player
         match user_input::keyboard_control(&rx) {
             Cmd::MOVE(x, y) => {
-                // can only control movement when atop sumat
-                if player.grounded {
-                    // generate movement control-force based on user-input
-                    let move_force: EuclidianVector = if x == 0 && y != 0 {
-                        player.target_vel(player.vel.x, 10.0 * y as f32)
-                    } else if y == 0 && x != 0 {
-                        player.target_vel(20.0 * x as f32, player.vel.y)
-                    } else {
-                        player.target_vel(20.0 * x as f32, 10.0 * y as f32)
-                    };
-                    player.apply_force(move_force);
+                // generate movement control-force based on user-input
+                let mut move_force: EuclidianVector = if x == 0 && y != 0 {
+                    player.target_vel(player.vel.x, 8.0 * y as f32)
+                } else if y == 0 && x != 0 {
+                    player.target_vel(20.0 * x as f32, player.vel.y)
+                } else {
+                    player.target_vel(20.0 * x as f32, 8.0 * y as f32)
+                };
+
+                // can only apply vertical control force when not free-falling
+                if !player.grounded {
+                    move_force.y = 0.0;
                 }
+                player.apply_force(move_force);
             }
             Cmd::STOP => {}
             Cmd::EXIT => {
