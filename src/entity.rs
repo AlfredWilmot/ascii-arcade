@@ -18,7 +18,6 @@ const TIME_STEP: f32 = 0.01; // defines the interval of the physics calculation
 pub const DEFAULT_WINDOW: (u16, u16) = (50, 10); // defines the viewing area and physical boundary
 const MAX_VEL: f32 = 20.0;
 const MAX_ACC: f32 = 1_000.0;
-const MAX_FORCE: f32 = 5_000.0;
 const _MAX_MASS: f32 = 1_000.0;
 
 // initialise the window boundary once at runtime by checking the size of the terminal
@@ -124,8 +123,6 @@ impl Entity {
     pub fn apply_force(&mut self, force: EuclidianVector) {
         self.input_force.x += force.x;
         self.input_force.y += force.y;
-        constraint(&mut self.input_force.x, -MAX_FORCE, MAX_FORCE);
-        constraint(&mut self.input_force.y, -MAX_FORCE, MAX_FORCE);
     }
 
     /// returns the force required to drive the entity to the target acceleration
@@ -142,8 +139,15 @@ impl Entity {
     }
 
     /// returns the force required to drive the entity to the target position
+    /// https://www.ncl.ac.uk/webtemplate/ask-assets/external/maths-resources/mechanics/kinematics/equations-of-motion.html
     pub fn target_pos(&mut self, x: f32, y: f32) -> EuclidianVector {
-        self.target_vel((x - self.pos.0) / TIME_STEP, (self.pos.1 - y) / TIME_STEP)
+        let (x0, y0) = self.pos;
+        let (vx, vy) = (self.vel.x, self.vel.y);
+        let m = self.mass;
+        EuclidianVector::new(
+            (2.0 / 3.0 ) * (x - x0 - (vx * TIME_STEP) ) * m / ( TIME_STEP * TIME_STEP ),
+            (2.0 / 3.0 ) * (y - y0 - (vy * TIME_STEP) ) * m / ( TIME_STEP * TIME_STEP )
+        )
     }
 
     /// update entity position using motion equations and Newton's 2nd Law:
