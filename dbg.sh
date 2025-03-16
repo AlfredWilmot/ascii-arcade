@@ -9,15 +9,15 @@ _usage(){
   echo "binary must be located somewhere under ${BINARY_PATH}" 2>&1
   echo "instrument src/ code with '//BREAKPOINT' to be used as breakpoint by gdb"
   if [ "$#" -gt 0 ]; then
-    echo "$*" 2>&1
+    printf "\n%s\n" "$*" 2>&1
   fi
   exit 1
 }
 
-# basic usage instructions
-if [ -z "${BINARY_NAME}" ]; then
-  _usage
-fi
+# ensure running as root and name of binary is specified
+[ "$(id -u)" -ne 0 ] && _usage "ERROR: must run as root"
+[ -z "${BINARY_NAME}" ] && _usage "ERROR: what is the name of the running binary?"
+
 
 # get PID of binary if it's running, ignore the pid of the grep search itself
 RUNNING_BINARY_PID="$(ps aux | grep "target/debug/.*${1}" | grep -v 'grep' | awk '{print $2}' | sed -n '1p')"
@@ -33,12 +33,12 @@ echo "${BINARY_NAME} matches PID ${RUNNING_BINARY_PID}"
 # and feed these into the gdb command below
 GDB_PARAMS=''
 while IFS= read -r breakpoint; do
-  if [ ! -z "${breakpoint}" ]; then
+  if [ -n "${breakpoint}" ]; then
     GDB_PARAMS+="-ex 'break ${breakpoint}' "
   fi
 done <<< "$(grep -ERn '(//|#) *BREAKPOINT' src/ | awk '{print $1}' | sed 's/.$//')"
 GDB_PARAMS+="-ex 'continue'"
 
 # attempt to attach debugger to the running process
-CMD="sudo gdb "${GDB_PARAMS}" -q attach "${RUNNING_BINARY_PID}""
+CMD="sudo gdb ${GDB_PARAMS} -q attach ${RUNNING_BINARY_PID}"
 eval "set -x; ${CMD}"

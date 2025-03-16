@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 readonly = "0.2.12"
 termion = "4.0.3"
+uuid = { version = "1.15.1", features = ["v4"] }

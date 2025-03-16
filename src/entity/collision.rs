@@ -2,82 +2,113 @@ use core::f32;
 
 use super::vector::EuclidianVector;
 use crate::entity::primitives::Square;
-use crate::entity::{Entities, Entity};
+use crate::entity::Entity;
+
+const COLLISION_TRIGGER_VEL: f32 = 10.0;
 
 /// Applies forces generated due to contact with other entities.
-pub fn pairwise(entity_under_test: &mut Entity, entities: &Entities) {
-    // initially assume the entity is not ontop of anything
-    entity_under_test.grounded = false;
+pub fn pairwise(entity: &mut Entity, other_entities: &Vec<Entity>) {
+    entity.grounded = false;
 
-    // determine the various forces experienced by the entity under test
-    let mut normal_force = EuclidianVector::new(0.0, 0.0);
-    let mut collision_force = EuclidianVector::new(0.0, 0.0);
-    let mut encounters: u32 = 0;
+    let _entity = entity.clone();
+    let entity_hitbox = Square::new(&_entity.pos, &_entity.hit_radius);
 
-    for entity_to_compare in entities {
-        // fumbling in the dark; am I alone or are we just not touching?
-        if let Some(overlap) = entity_under_test.overlap(entity_to_compare) {
-            if entity_under_test.pos == entity_to_compare.pos {
-                continue;
+    // gathers a list of references to entities colliding with the entity under test
+    let mut colliders: Vec<&Entity> = Vec::new();
+
+    for other_entity in other_entities {
+        if entity.uuid == other_entity.uuid {
+            continue;
+        }
+        // define hitboxes to determine if entitie are colliding
+        let other_hitbox = Square::new(&other_entity.pos, &other_entity.hit_radius);
+
+        if entity_hitbox.overlap(&other_hitbox).is_some() {
+            colliders.push(other_entity);
+        }
+    }
+
+    // no colliders detected, exit
+    if colliders.is_empty() {
+        return;
+    }
+
+    // used to average values
+    let ratio: f32 = 1.0 / colliders.len() as f32;
+
+    // create a single equivalent collider from all the colliding entities
+    let mass_avg: f32 = colliders.iter().map(|e| e.mass).sum();
+    let mut pos_avg: (f32, f32) = (0.0, 0.0);
+    let mut vel_avg = EuclidianVector::new(0.0, 0.0);
+    let mut acc_avg = EuclidianVector::new(0.0, 0.0);
+
+    for collider in &colliders[..] {
+        pos_avg = (pos_avg.0 + collider.pos.0, pos_avg.1 + collider.pos.1);
+        vel_avg += collider.vel.clone();
+        acc_avg += collider.acc.clone();
+    }
+
+    let equivalent_single_entity = Entity {
+        mass: mass_avg * ratio,
+        pos: (pos_avg.0 * ratio, pos_avg.1 * ratio),
+        vel: vel_avg * ratio,
+        acc: acc_avg * ratio,
+        ..Entity::default()
+    };
+
+    let other_hitbox = &Square::new(
+        &equivalent_single_entity.pos,
+        &equivalent_single_entity.hit_radius,
+    );
+    let me_to_you = EuclidianVector::from(entity.pos, equivalent_single_entity.pos).unit();
+
+    if let Some(overlap) = entity_hitbox.overlap(other_hitbox) {
+        entity.grounded = true;
+
+        let collide = entity
+            .collision_force(&equivalent_single_entity)
+            .unwrap_or(EuclidianVector::new(0.0, 0.0));
+
+        // as an approximation, the direction of overlap can (in general) be treated
+        // as orthogonal to the largest overlap side.
+
+        // colliding vertically
+        if overlap.0 >= overlap.1 {
+            if entity.vel.y.abs() >= COLLISION_TRIGGER_VEL
+                || equivalent_single_entity.vel.y.abs() >= COLLISION_TRIGGER_VEL
+            {
+                entity.apply_force(EuclidianVector::new(0.0, collide.y));
             }
-            // treat encounter as grounding condition for simplicity (for now)
-            encounters += 1;
-
-            // normal force due to the current encounter
-            let you_to_me =
-                EuclidianVector::from(entity_to_compare.pos, entity_under_test.pos).unit();
-
-            if overlap.0 >= overlap.1 {
-                entity_under_test.grounded = true;
-                normal_force.y += you_to_me.y;
-            } else {
-                normal_force.x += you_to_me.x;
-            }
-
-            // velocity change force due to the current encounter
-            if let Some(force) = entity_under_test.try_collide(entity_to_compare) {
-                if overlap.0 >= overlap.1 {
-                    collision_force.y += force.y;
+            if me_to_you.dot(&entity.vel) > 0.0 {
+                if me_to_you.y > 0.0 {
+                    entity.pos.1 -= overlap.1;
                 } else {
-                    collision_force.x += force.x;
+                    entity.pos.1 += overlap.1;
+                }
+            }
+        }
+
+        // colliding horizontally
+        if overlap.1 >= overlap.0 {
+            if entity.vel.x.abs() >= COLLISION_TRIGGER_VEL
+                || equivalent_single_entity.vel.x.abs() >= COLLISION_TRIGGER_VEL
+            {
+                entity.apply_force(EuclidianVector::new(collide.x, 0.0));
+            }
+            if me_to_you.dot(&entity.vel) > 0.0 {
+                if me_to_you.x > 0.0 {
+                    entity.pos.0 -= overlap.0;
+                } else {
+                    entity.pos.0 += overlap.0;
                 }
             }
         }
     }
-
-    if encounters > 0 {
-        // determine normal force resulting from all encounters
-        let mass = entity_under_test.mass;
-        entity_under_test.apply_force(
-            mass * entity_under_test.acc.x.abs() * normal_force.unit().x,
-            2.0 * mass * entity_under_test.acc.y.abs() * normal_force.unit().y,
-        );
-        // determine average force due to velocity changes resulting from all encounters
-        entity_under_test.apply_force(
-            collision_force.x / (encounters as f32),
-            collision_force.y / (encounters as f32),
-        )
-    }
 }
 
 impl Entity {
-    /// Determine whether this entity is colliding (intersecting) with the target entity
-    /// using a hitbox of some description.
-    pub fn overlap(&self, target: &Entity) -> Option<(f32, f32)> {
-        let my_hitbox = Square::new(&self.pos, &self.hit_radius);
-        let thy_hitbox = Square::new(&target.pos, &target.hit_radius);
-        let result = my_hitbox.overlap_size(&thy_hitbox);
-        if result == (0.0, 0.0) {
-            None
-        } else {
-            Some(result)
-        }
-    }
-
-    /// Determines whether this entity is colliding with some other entity, and if so,
-    /// updates this entity with the forces experienced due to the change in velocity
-    /// resulting from the collision.
-    fn try_collide(&mut self, target: &Entity) -> Option<EuclidianVector> {
+    /// Force generated due to velocity changes during a collision.
+    fn collision_force(&mut self, target: &Entity) -> Option<EuclidianVector> {
         // where are we relative to one another?
         let me_to_you = EuclidianVector::from(self.pos, target.pos).unit();
         let you_to_me = EuclidianVector::from(target.pos, self.pos).unit();

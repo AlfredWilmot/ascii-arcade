@@ -1,10 +1,103 @@
-use std::{f32, ops::Mul};
+use std::{
+    f32,
+    ops::{Add, AddAssign, Mul, MulAssign, Sub, SubAssign},
+};
 
 /// A geometric vector with a magnitude and direction
 #[derive(Clone, Debug, PartialEq)]
 pub struct EuclidianVector {
     pub x: f32,
     pub y: f32,
+}
+
+/// Implement addition operator for EuclidianVectors.
+/// <https://doc.rust-lang.org/std/ops/trait.Add.html>
+///
+/// # Example
+///
+/// ```rust
+/// use ascii_arcade::entity::vector::EuclidianVector;
+/// let a = EuclidianVector::new(1.0, 2.0);
+/// let b = EuclidianVector::new(1.0, -2.0);
+/// let c: EuclidianVector = a + b;
+/// assert!(c.x == 2.0);
+/// assert!(c.y == 0.0);
+/// ```
+impl Add<EuclidianVector> for EuclidianVector {
+    type Output = Self;
+    fn add(self, rhs: EuclidianVector) -> Self::Output {
+        Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+/// Implement subtraction operator for EuclidianVectors.
+/// <https://doc.rust-lang.org/std/ops/trait.Sub.html>
+///
+/// # Example
+///
+/// ```rust
+/// use ascii_arcade::entity::vector::EuclidianVector;
+/// let a = EuclidianVector::new(1.0, 2.0);
+/// let b = EuclidianVector::new(1.0, -2.0);
+/// let c: EuclidianVector = a - b;
+/// assert!(c.x == 0.0);
+/// assert!(c.y == 4.0);
+/// ```
+impl Sub<EuclidianVector> for EuclidianVector {
+    type Output = Self;
+    fn sub(self, rhs: EuclidianVector) -> Self::Output {
+        Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+/// Implement addition assignment operator for EuclidianVectors.
+/// <https://doc.rust-lang.org/std/ops/trait.AddAssign.html>
+///
+/// # Example
+///
+/// ```rust
+/// use ascii_arcade::entity::vector::EuclidianVector;
+/// let mut a = EuclidianVector::new(1.0, 2.0);
+/// let b = EuclidianVector::new(1.0, -2.0);
+/// a += b;
+/// assert!(a.x == 2.0);
+/// assert!(a.y == 0.0);
+/// ```
+impl AddAssign for EuclidianVector {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = Self {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        };
+    }
+}
+
+/// Implement subtraction assignment operator for EuclidianVectors.
+/// <https://doc.rust-lang.org/std/ops/trait.SubAssign.html>
+///
+/// # Example
+///
+/// ```rust
+/// use ascii_arcade::entity::vector::EuclidianVector;
+/// let mut a = EuclidianVector::new(1.0, 2.0);
+/// let b = EuclidianVector::new(1.0, -2.0);
+/// a -= b;
+/// assert!(a.x == 0.0);
+/// assert!(a.y == 4.0);
+/// ```
+impl SubAssign for EuclidianVector {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = Self {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        };
+    }
 }
 
 /// Returns a vector with fields multiplied by the float for '*'
@@ -25,6 +118,15 @@ impl Mul<f32> for EuclidianVector {
         self.x *= rhs;
         self.y *= rhs;
         self
+    }
+}
+
+impl MulAssign<f32> for EuclidianVector {
+    fn mul_assign(&mut self, rhs: f32) {
+        *self = Self {
+            x: self.x * rhs,
+            y: self.y * rhs,
+        };
     }
 }
 

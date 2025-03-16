@@ -9,6 +9,7 @@ use std::cmp::PartialOrd;
 use std::fmt::Debug;
 use std::sync::LazyLock;
 
+use uuid::Uuid;
 use vector::EuclidianVector;
 
 pub const BACKGROUND: char = ' ';
@@ -48,6 +49,7 @@ pub enum EntityType {
 pub struct Entity {
     // these affect both physics calculations and rendering behaviour
     pub id: EntityType,
+    pub uuid: Uuid,
     pub state: EntityState,
 
     // these drive physics calculations (unlikely to change much)
@@ -59,7 +61,6 @@ pub struct Entity {
 
     // forces applied to and exerted by entity
     pub input_force: EuclidianVector,
-    pub reaction_force: EuclidianVector,
 
     // misc fields (subject to imminent change)
     pub grounded: bool,
@@ -86,13 +87,13 @@ impl Default for Entity {
     fn default() -> Self {
         Self {
             id: EntityType::Npc,
+            uuid: Uuid::new_v4(),
             state: EntityState::Alive,
             pos: (0.0, 0.0),
             vel: EuclidianVector::new(0.0, 0.0),
             acc: EuclidianVector::new(0.0, 0.0),
             mass: 1.0,
             input_force: EuclidianVector::new(0.0, 0.0),
-            reaction_force: EuclidianVector::new(0.0, 0.0),
             hit_radius: 0.5,
             grounded: false,
         }
@@ -120,9 +121,9 @@ pub fn update(entities: &mut [Entity]) {
 impl Entity {
     /// apply a force vector to the associated entity to affect its
     /// acceleration vector on the next update (F = m * a)
-    pub fn apply_force(&mut self, fx: f32, fy: f32) {
-        self.input_force.x += fx;
-        self.input_force.y += fy;
+    pub fn apply_force(&mut self, force: EuclidianVector) {
+        self.input_force.x += force.x;
+        self.input_force.y += force.y;
         constraint(&mut self.input_force.x, -MAX_FORCE, MAX_FORCE);
         constraint(&mut self.input_force.y, -MAX_FORCE, MAX_FORCE);
     }
@@ -142,14 +143,14 @@ impl Entity {
 
     /// returns the force required to drive the entity to the target position
     pub fn target_pos(&mut self, x: f32, y: f32) -> EuclidianVector {
-        self.target_vel((self.pos.0 - x) / TIME_STEP, (self.pos.1 - y) / TIME_STEP)
+        self.target_vel((x - self.pos.0) / TIME_STEP, (self.pos.1 - y) / TIME_STEP)
     }
 
     /// update entity position using motion equations and Newton's 2nd Law:
     /// x1 = x0 + vt + 0.5at^2
     /// v1 = v0 + at
     /// F = m * a
-    fn update(&mut self) {
+    pub fn update(&mut self) {
         // determine the resultant acceleration from the applied forces
         // constant force means constant acceleration
         self.acc.x = self.input_force.x / self.mass;
