@@ -150,7 +150,7 @@ impl Entity {
     /// x1 = x0 + vt + 0.5at^2
     /// v1 = v0 + at
     /// F = m * a
-    fn update(&mut self) {
+    pub fn update(&mut self) {
         // determine the resultant acceleration from the applied forces
         // constant force means constant acceleration
         self.acc.x = self.input_force.x / self.mass;
