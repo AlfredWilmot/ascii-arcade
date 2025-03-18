@@ -50,6 +50,7 @@ fn main() {
                 // can only apply vertical control force when not free-falling
                 if !player.grounded {
                     move_force.y = 0.0;
+                    move_force.x *= 0.025;
                 }
                 player.apply_force(move_force);
             }
