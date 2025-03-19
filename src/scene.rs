@@ -1,4 +1,5 @@
 use crate::entity::{Entity, BACKGROUND};
+use ratatui::layout::Position;
 use ratatui::prelude::TermionBackend;
 use ratatui::Terminal;
 use std::error::Error;
@@ -28,13 +29,10 @@ pub fn init() -> Result<MouseEnabledTerminal, Box<dyn Error>> {
 }
 
 /// clean-up terminal
-pub fn close() {
-    println!(
-        "{}{}{}",
-        termion::cursor::Goto(1, 1),
-        termion::cursor::Show,
-        termion::clear::All
-    );
+pub fn close(mut terminal: MouseEnabledTerminal) {
+    _ = terminal.set_cursor_position(Position::new(0, 0));
+    _ = terminal.show_cursor();
+    _ = terminal.clear();
 }
 
 /// Print diagnostic information
