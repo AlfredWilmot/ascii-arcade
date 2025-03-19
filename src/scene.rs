@@ -1,22 +1,26 @@
 use crate::entity::{Entity, BACKGROUND};
+use ratatui::prelude::TermionBackend;
+use ratatui::Terminal;
+use std::error::Error;
 use std::fmt::Debug;
 use std::io::{self, Stdout};
 use std::iter;
 use termion;
-use termion::input::MouseTerminal;
 use termion::raw::{IntoRawMode, RawTerminal};
 
 /// initialize terminal
-pub fn init() -> MouseTerminal<RawTerminal<Stdout>> {
+pub fn init() -> Result<Terminal<TermionBackend<RawTerminal<Stdout>>>, Box<dyn Error>> {
     // Set the TTY into "Raw mode":
     // - stdin is no longer printed to terminal
     // - stdin is read one-byte at a time (for handling of individual key-presses)
     // References:
     // - https://docs.rs/termion/1.5.2/termion/raw/index.html
     // - https://stackoverflow.com/a/55881770
-    let stdout = MouseTerminal::from(io::stdout().into_raw_mode().unwrap());
+    let stdout = io::stdout().into_raw_mode()?;
     println!("{}{}", termion::cursor::Hide, termion::clear::All);
-    stdout
+    let terminal = Terminal::new(TermionBackend::new(stdout))?;
+
+    Ok(terminal)
 }
 
 /// clean-up terminal
