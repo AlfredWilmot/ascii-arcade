@@ -6,17 +6,21 @@ use std::fmt::Debug;
 use std::io::{self, Stdout};
 use std::iter;
 use termion;
+use termion::input::MouseTerminal;
 use termion::raw::{IntoRawMode, RawTerminal};
 
+/// Ratatui Terminal with Mouse-support, using Termion as the Backend
+type MouseEnabledTerminal = Terminal<TermionBackend<MouseTerminal<RawTerminal<Stdout>>>>;
+
 /// initialize terminal
-pub fn init() -> Result<Terminal<TermionBackend<RawTerminal<Stdout>>>, Box<dyn Error>> {
+pub fn init() -> Result<MouseEnabledTerminal, Box<dyn Error>> {
     // Set the TTY into "Raw mode":
     // - stdin is no longer printed to terminal
     // - stdin is read one-byte at a time (for handling of individual key-presses)
     // References:
     // - https://docs.rs/termion/1.5.2/termion/raw/index.html
     // - https://stackoverflow.com/a/55881770
-    let stdout = io::stdout().into_raw_mode()?;
+    let stdout = MouseTerminal::from(io::stdout().into_raw_mode()?);
     println!("{}{}", termion::cursor::Hide, termion::clear::All);
     let terminal = Terminal::new(TermionBackend::new(stdout))?;
 
