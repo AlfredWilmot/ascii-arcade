@@ -13,7 +13,7 @@ fn main() {
     //
 
     // keep the RawTerminal in scope until we exit the game
-    let mut _stdout = scene::init();
+    let terminal = scene::init();
     let rx = user_input::create_data_channel();
 
     // keep this up-to-date on every game-loop cycle so we can query the scene by coordinates
@@ -87,5 +87,5 @@ fn main() {
         scene::render(&entities_then, &entities_now);
         thread::sleep(Duration::from_secs_f32(dt));
     }
-    scene::close();
+    scene::close(terminal.unwrap());
 }
