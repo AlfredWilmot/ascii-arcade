@@ -54,15 +54,14 @@ fn main() {
                 }
                 player.apply_force(move_force);
             }
-            Cmd::STOP => {}
-            Cmd::EXIT => {
-                break 'game;
-            }
-            Cmd::DEBUG(_) => {}
             // spawn an entity of some type at some location
             Cmd::SPAWN(x, y, id) => {
                 entities_now.push(Entity::new(id, (x as f32, y as f32)));
             }
+            Cmd::EXIT => {
+                break 'game;
+            }
+            _ => {}
         }
 
         // apply global acceleration rules
