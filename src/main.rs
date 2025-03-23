@@ -1,4 +1,5 @@
 use ascii_arcade::{
+    games::{Game, GAME_COUNT},
     scene,
     user_input::{self, menu_fsm, sandbox_game_fsm, Cmd},
 };
@@ -16,12 +17,6 @@ const WELCOME: &str = r#"
 
 "#;
 
-// the different games the user can play
-pub enum Game {
-    SANDBOX,
-    PONG,
-}
-
 pub enum Mode {
     Default,
     Debug,
@@ -29,33 +24,55 @@ pub enum Mode {
 
 pub enum State {
     Playing(Game),
-    MenuSelection,
+    MenuSelection(Game),
 }
 
 /// Represents the state of the TUI application (manages persistent data)
 pub struct App {
     pub state: State, // indicates the current state of the app
     pub mode: Mode,   // determines the mode to run the app in
+    _menu_options: [Game; GAME_COUNT],
 }
 
 impl App {
     /// create a new App instance.
     pub fn new(mode: Mode) -> App {
         App {
-            state: State::MenuSelection,
+            state: State::MenuSelection(Game::Sandbox),
             mode,
+            _menu_options: [Game::Sandbox, Game::Pong],
         }
     }
     /// update the state of the app based on user input and current state.
     pub fn update(&mut self, usr_input: Event) -> Cmd {
-        match &self.state {
+        // get the command based on the app state and user-input
+        let cmd = match &self.state {
             // controlling the game that is being played.
             State::Playing(game) => match game {
-                Game::SANDBOX => sandbox_game_fsm(usr_input),
-                Game::PONG => Cmd::EXIT,
+                Game::Sandbox => sandbox_game_fsm(usr_input),
+                Game::Pong => Cmd::EXIT,
             },
+
             // controlling main menu if no game is at play.
-            State::MenuSelection => menu_fsm(usr_input),
+            State::MenuSelection(_) => menu_fsm(usr_input),
+        };
+
+        // update the app state based on the generated command
+        match &self.state {
+            State::Playing(_) => match cmd {
+                Cmd::RETURN => {
+                    self.state = State::MenuSelection(Game::Sandbox);
+                    cmd
+                }
+                _ => cmd,
+            },
+            State::MenuSelection(game) => match cmd {
+                Cmd::SELECT => {
+                    self.state = State::Playing(*game);
+                    cmd
+                }
+                _ => cmd,
+            },
         }
     }
 }
