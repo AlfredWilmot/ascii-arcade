@@ -1,14 +1,36 @@
+use termion::event::{Event, Key, MouseButton, MouseEvent};
+
 use crate::{
-    entity::{vector::EuclidianVector, Entities, Entity},
+    entity::{vector::EuclidianVector, Entities, Entity, EntityType},
     user_input::Cmd,
 };
 
 // the different games the user can play
-pub const GAME_COUNT: usize = 2; // this must match the number of Game enum fields.
 #[derive(Clone, Copy)]
 pub enum Game {
     Sandbox,
     Pong,
+}
+
+/// Interface for the main menu.
+pub struct MainMenu;
+
+impl MainMenu {
+    pub fn parse_event(event: Event) -> Cmd {
+        match event {
+            Event::Key(key) => match key {
+                Key::Char('l') | Key::Right => Cmd::MOVE(1, 0),
+                Key::Char('h') | Key::Left => Cmd::MOVE(-1, 0),
+                Key::Char('k') | Key::Up => Cmd::MOVE(0, -1),
+                Key::Char('j') | Key::Down => Cmd::MOVE(0, 1),
+                Key::Char('q') | Key::Esc => Cmd::EXIT,
+                Key::Char('\n') => Cmd::SELECT,
+                _ => Cmd::DEBUG(Event::Key(key)),
+            },
+            _ => Cmd::DEBUG(event),
+        }
+    }
+    pub fn process_cmds() {}
 }
 
 /// Interface for the sandbox game.
@@ -16,7 +38,24 @@ pub struct SandboxGame;
 
 impl SandboxGame {
     /// Parses an input Event into the correspinding Cmd for this game.
-    pub fn parse_event() {}
+    pub fn parse_event(event: Event) -> Cmd {
+        match event {
+            Event::Key(key) => match key {
+                Key::Char('d') => Cmd::MOVE(1, 0),
+                Key::Char('a') => Cmd::MOVE(-1, 0),
+                Key::Char('w') => Cmd::MOVE(0, -1),
+                Key::Char('s') => Cmd::MOVE(0, 1),
+                Key::Char('q') | Key::Esc => Cmd::EXIT,
+                _ => Cmd::DEBUG(Event::Key(key)),
+            },
+            Event::Mouse(mouse) => match mouse {
+                MouseEvent::Press(MouseButton::Left, x, y) => Cmd::SPAWN(x, y, EntityType::Npc),
+                MouseEvent::Press(MouseButton::Right, x, y) => Cmd::SPAWN(x, y, EntityType::Static),
+                _ => Cmd::DEBUG(Event::Mouse(mouse)),
+            },
+            _ => Cmd::DEBUG(event),
+        }
+    }
 
     /// Apply control signals to player, and possibly modify entity pool.
     pub fn process_cmds(player: &mut Entity, entities: &mut Entities, cmd: Cmd) -> Cmd {
