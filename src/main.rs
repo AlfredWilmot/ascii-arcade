@@ -3,7 +3,11 @@ use ascii_arcade::{
     scene,
     user_input::{self, menu_fsm, sandbox_game_fsm, Cmd},
 };
-use ratatui::{style::Style, widgets::{Block, Borders, Paragraph}};
+use ratatui::{
+    style::Style,
+    widgets::{Block, Borders, Paragraph},
+    Frame,
+};
 use termion::event::Event;
 
 const WELCOME: &str = r#"
@@ -77,6 +81,14 @@ impl App {
     }
 }
 
+/// Generate and render a fame based on the current state of the app.
+pub fn ui(frame: &mut Frame, app: &App) {
+    let background = Block::default().borders(Borders::ALL).style(Style::new());
+    let greeting = Paragraph::new(WELCOME.to_string()).block(background);
+    frame.render_widget(greeting, frame.area());
+    let _ = app;
+}
+
 fn main() {
     let mut terminal = scene::init().unwrap();
     let rx = user_input::create_data_channel();
@@ -85,19 +97,14 @@ fn main() {
     'menu: loop {
         terminal
             .draw(|frame| {
-                let background = Block::default()
-                    .borders(Borders::ALL)
-                    .style(Style::new());
-                let greeting = Paragraph::new(WELCOME.to_string()).block(background);
-                frame.render_widget(greeting, frame.area());
+                ui(frame, &app);
             })
             .unwrap();
 
         if let Ok(event) = rx.try_recv() {
-            match app.update(event) {
-                Cmd::EXIT => break 'menu,
-                _ => {} // TODO: implement the UI FSM that processes the CMD to generate the scene
-            }
+            if let Cmd::EXIT = app.update(event) {
+                break 'menu;
+            };
         }
     }
 
