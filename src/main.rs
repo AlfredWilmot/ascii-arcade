@@ -3,7 +3,7 @@ use ascii_arcade::{
     scene,
     user_input::{self, menu_fsm, sandbox_game_fsm, Cmd},
 };
-use ratatui::widgets::Paragraph;
+use ratatui::{style::Style, widgets::{Block, Borders, Paragraph}};
 use termion::event::Event;
 
 const WELCOME: &str = r#"
@@ -85,7 +85,10 @@ fn main() {
     'menu: loop {
         terminal
             .draw(|frame| {
-                let greeting = Paragraph::new(WELCOME.to_string());
+                let background = Block::default()
+                    .borders(Borders::ALL)
+                    .style(Style::new());
+                let greeting = Paragraph::new(WELCOME.to_string()).block(background);
                 frame.render_widget(greeting, frame.area());
             })
             .unwrap();
