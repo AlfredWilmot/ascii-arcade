@@ -88,7 +88,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
     frame.render_widget(border, frame.area());
 
     // split the menu into two halves horizontally
-    let menu = Layout::vertical([Constraint::Fill(1); 2]);
+    let line_count: u16 = WELCOME.split('\n').count() as u16;
+    let menu = Layout::vertical([Constraint::Max(line_count), Constraint::Fill(1)]);
     let [header, footer] = menu.areas(frame.area());
 
     // fill the header with the WELCOME text
