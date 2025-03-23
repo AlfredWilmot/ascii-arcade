@@ -1,7 +1,7 @@
 use ascii_arcade::{
-    games::{Game, GAME_COUNT},
+    games::{Game, MainMenu, SandboxGame},
     scene,
-    user_input::{self, menu_fsm, sandbox_game_fsm, Cmd},
+    user_input::{self, Cmd},
 };
 use ratatui::{
     style::Style,
@@ -35,7 +35,6 @@ pub enum State {
 pub struct App {
     pub state: State, // indicates the current state of the app
     pub mode: Mode,   // determines the mode to run the app in
-    _menu_options: [Game; GAME_COUNT],
 }
 
 impl App {
@@ -44,7 +43,6 @@ impl App {
         App {
             state: State::MenuSelection(Game::Sandbox),
             mode,
-            _menu_options: [Game::Sandbox, Game::Pong],
         }
     }
     /// update the state of the app based on user input and current state.
@@ -53,12 +51,12 @@ impl App {
         let cmd = match &self.state {
             // controlling the game that is being played.
             State::Playing(game) => match game {
-                Game::Sandbox => sandbox_game_fsm(usr_input),
+                Game::Sandbox => SandboxGame::parse_event(usr_input),
                 Game::Pong => Cmd::EXIT,
             },
 
             // controlling main menu if no game is at play.
-            State::MenuSelection(_) => menu_fsm(usr_input),
+            State::MenuSelection(_) => MainMenu::parse_event(usr_input),
         };
 
         // update the app state based on the generated command

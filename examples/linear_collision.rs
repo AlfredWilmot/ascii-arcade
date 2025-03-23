@@ -36,7 +36,7 @@ fn sandbox_game(input_reader: Receiver<Event>) {
 
         // process user input.
         if let Ok(event) = input_reader.try_recv() {
-            let cmd = user_input::sandbox_game_fsm(event);
+            let cmd = SandboxGame::parse_event(event);
             if let Cmd::EXIT | Cmd::RETURN =
                 SandboxGame::process_cmds(&mut player, &mut entities_now, cmd)
             {
