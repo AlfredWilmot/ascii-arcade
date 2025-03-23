@@ -4,14 +4,16 @@ use ascii_arcade::{
     user_input::{self, Cmd},
 };
 use ratatui::{
+    layout::{Constraint, Layout},
     style::Style,
     widgets::{Block, Borders, Paragraph},
     Frame,
 };
 use termion::event::Event;
 
+/// welcome screen text (NOTE: trailing whitespace is necesary for centering text)
 const WELCOME: &str = r#"
-    _             _ _    _                      _
+    _             _ _    _                      _     
    / \   ___  ___(_|_)  / \   _ __ ___ __ _  __| | ___
   / _ \ / __|/ __| | | / _ \ | '__/ __/ _` |/ _` |/ _ \
  / ___ \\__ \ (__| | |/ ___ \| | | (_| (_| | (_| |  __/
@@ -81,14 +83,26 @@ impl App {
 
 /// Generate and render a fame based on the current state of the app.
 pub fn ui(frame: &mut Frame, app: &App) {
-    let background = Block::default().borders(Borders::ALL).style(Style::new());
-    let greeting = Paragraph::new(WELCOME.to_string()).block(background);
-    frame.render_widget(greeting, frame.area());
+    // create a border around the entire viewport
+    let border = Block::default().borders(Borders::ALL).style(Style::new());
+    frame.render_widget(border, frame.area());
+
+    // split the menu into two halves horizontally
+    let menu = Layout::vertical([Constraint::Fill(1); 2]);
+    let [header, footer] = menu.areas(frame.area());
+
+    // fill the header with the WELCOME text
+    let header_text = Paragraph::new(WELCOME.to_string()).centered();
+    frame.render_widget(header_text, header);
+
+    let footer_text = Paragraph::new("something, something, tada!").centered();
+
+    frame.render_widget(footer_text, footer);
     let _ = app;
 }
 
 fn main() {
-    let mut terminal = scene::init().unwrap();
+    let mut terminal = scene::init().expect("ERROR: could not setup terminal!");
     let rx = user_input::create_data_channel();
     let mut app = App::new(Mode::Default);
 
@@ -97,7 +111,7 @@ fn main() {
             .draw(|frame| {
                 ui(frame, &app);
             })
-            .unwrap();
+            .expect("ERROR: could not draw frame!");
 
         if let Ok(event) = rx.try_recv() {
             if let Cmd::EXIT = app.update(event) {
