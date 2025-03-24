@@ -20,13 +20,13 @@ pub enum Cmd {
 /// them over a channel to be ingested by a separate thread
 /// https://stackoverflow.com/a/55201400
 /// https://doc.rust-lang.org/std/io/struct.Stdin.html#method.lock
-pub fn create_data_channel() -> mpsc::Receiver<termion::event::Event> {
-    let (tx, rx) = mpsc::channel::<termion::event::Event>();
+pub fn create_data_channel() -> mpsc::Receiver<Event> {
+    let (tx, rx) = mpsc::channel::<Event>();
 
     // thread for checking user events
     thread::spawn(move || loop {
-        for event in &mut io::stdin().events() {
-            let event = event.unwrap();
+        for input_event in &mut io::stdin().events() {
+            let event = input_event.unwrap();
             tx.send(event).unwrap();
         }
     });
