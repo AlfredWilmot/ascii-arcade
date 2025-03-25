@@ -1,65 +1,55 @@
 use std::sync::mpsc;
+use std::time::Duration;
 use std::{io, thread};
 
-use termion::event::{Event, Key, MouseButton, MouseEvent};
+use termion::event::{Event, Key};
 use termion::input::TermRead;
 
 use crate::entity::EntityType;
-
-/// creates a thread for monitoring keystrokes and forwarding
-/// them over a channel to be ingested by a separate thread
-/// https://stackoverflow.com/a/55201400
-/// https://doc.rust-lang.org/std/io/struct.Stdin.html#method.lock
-pub fn create_data_channel() -> mpsc::Receiver<termion::event::Event> {
-    let (tx, rx) = mpsc::channel::<termion::event::Event>();
-
-    // thread for checking user events
-    thread::spawn(move || loop {
-        for event in &mut io::stdin().events() {
-            let event = event.unwrap();
-            tx.send(event).unwrap();
-        }
-    });
-
-    rx
-}
 
 pub enum Cmd {
     STOP,
     MOVE(i8, i8),
     DEBUG(Event),
     SPAWN(u16, u16, EntityType),
+    SELECT,
+    RETURN,
     EXIT,
 }
 
-/// check key presses to drive player behaviour
-/// read-in a set of key-strokes and drive velocity based on weighted average
-/// corresponding to the key presesd
-pub fn keyboard_control(rx: &mpsc::Receiver<termion::event::Event>) -> Cmd {
-    match rx.try_recv() {
-        Ok(event) => {
-            match event {
-                Event::Key(key) => match key {
-                    Key::Char('d') => Cmd::MOVE(1, 0),
-                    Key::Char('a') => Cmd::MOVE(-1, 0),
-                    Key::Char('w') => Cmd::MOVE(0, -1),
-                    Key::Char('s') => Cmd::MOVE(0, 1),
-                    Key::Char('q') | Key::Esc => Cmd::EXIT,
-                    other_key => Cmd::DEBUG(Event::Key(other_key)),
-                },
+/// creates threads for monitoring various event sources and forwards
+/// those events over a channel to be ingested by a separate thread.
+/// https://stackoverflow.com/a/55201400
+/// https://doc.rust-lang.org/std/io/struct.Stdin.html#method.lock
+pub fn create_data_channel() -> mpsc::Receiver<Event> {
+    let (tx, rx) = mpsc::channel::<Event>();
 
-                Event::Mouse(MouseEvent::Press(MouseButton::Left, x, y)) => {
-                    Cmd::SPAWN(x, y, EntityType::Npc)
-                }
-                Event::Mouse(MouseEvent::Press(MouseButton::Right, x, y)) => {
-                    Cmd::SPAWN(x, y, EntityType::Static)
-                }
-                other_event => {
-                    // other keys
-                    Cmd::DEBUG(other_event)
-                }
-            }
+    // thread for checking user keyboard and mouse events
+    let tx_usr_input = tx.clone();
+    thread::spawn(move || loop {
+        // Transmit any valid Events over channel, ignoring Errors
+        for input_event in (&mut io::stdin().events()).flatten() {
+            let _ = tx_usr_input.send(input_event);
         }
-        Err(_) => Cmd::STOP,
-    }
+    });
+
+    // thread for checking terminal resizes
+    let tx_term_resize = tx.clone();
+    let sleep_interval: u64 = 500; // milliseconds
+    thread::spawn(move || {
+        let mut term_size: (u16, u16) = (0, 0);
+        loop {
+            thread::sleep(Duration::from_millis(sleep_interval));
+            if let Ok(new_size) = termion::terminal_size() {
+                if new_size != term_size {
+                    term_size = new_size;
+                    let _ = tx_term_resize.send(Event::Key(Key::Null));
+                } else {
+                    continue;
+                };
+            };
+        }
+    });
+
+    rx
 }

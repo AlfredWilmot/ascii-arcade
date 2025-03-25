@@ -35,7 +35,7 @@ pub enum EntityState {
     Hidden,
 }
 
-#[derive(Default, PartialEq, Clone, Debug)]
+#[derive(Default, PartialEq, Clone, Debug, Copy)]
 pub enum EntityType {
     #[default]
     Npc,
@@ -44,7 +44,6 @@ pub enum EntityType {
 }
 
 #[derive(Clone, Debug)]
-#[readonly::make]
 pub struct Entity {
     // these affect both physics calculations and rendering behaviour
     pub id: EntityType,

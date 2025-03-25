@@ -1,20 +1,20 @@
 use ascii_arcade::entity::vector::EuclidianVector;
 use ascii_arcade::entity::{update, Entities, Entity, EntityType};
+use ascii_arcade::games::SandboxGame;
 use ascii_arcade::user_input::Cmd;
 use ascii_arcade::{scene, user_input};
+use std::sync::mpsc::Receiver;
 use std::thread;
 use std::time::Duration;
+use termion::event::Event;
 
 const TIME_DELTA_MS: u64 = 10;
 
-fn main() {
+fn sandbox_game(input_reader: Receiver<Event>) {
     //
     // INITIALISATION
     //
-
-    // keep the RawTerminal in scope until we exit the game
-    let mut _stdout = scene::init();
-    let rx = user_input::create_data_channel();
+    let dt = Duration::from_millis(TIME_DELTA_MS).as_secs_f32();
 
     // keep this up-to-date on every game-loop cycle so we can query the scene by coordinates
     let mut entities_now: Entities = Vec::new();
@@ -27,43 +27,25 @@ fn main() {
     //
     // GAME LOOP
     //
-    let dt = Duration::from_millis(TIME_DELTA_MS).as_secs_f32();
     'game: loop {
         // capture the current state of the scene
         entities_then = entities_now.to_vec();
 
-        // create a mutable reference to the "player" entity"
-        let player = &mut entities_now[0];
+        // extract the player from the entity pool.
+        let mut player = entities_now.pop().unwrap();
 
-        // apply control signals to player
-        match user_input::keyboard_control(&rx) {
-            Cmd::MOVE(x, y) => {
-                // generate movement control-force based on user-input
-                let mut move_force: EuclidianVector = if x == 0 && y != 0 {
-                    player.target_vel(player.vel.x, 8.0 * y as f32)
-                } else if y == 0 && x != 0 {
-                    player.target_vel(20.0 * x as f32, player.vel.y)
-                } else {
-                    player.target_vel(20.0 * x as f32, 8.0 * y as f32)
-                };
-
-                // can only apply vertical control force when not free-falling
-                if !player.grounded {
-                    move_force.y = 0.0;
-                    move_force.x *= 0.025;
-                }
-                player.apply_force(move_force);
-            }
-            Cmd::STOP => {}
-            Cmd::EXIT => {
+        // process user input.
+        if let Ok(event) = input_reader.try_recv() {
+            let cmd = SandboxGame::parse_event(event);
+            if let Cmd::EXIT | Cmd::RETURN =
+                SandboxGame::process_cmds(&mut player, &mut entities_now, cmd)
+            {
                 break 'game;
             }
-            Cmd::DEBUG(_) => {}
-            // spawn an entity of some type at some location
-            Cmd::SPAWN(x, y, id) => {
-                entities_now.push(Entity::new(id, (x as f32, y as f32)));
-            }
         }
+
+        // reinsert the player to the entity pool.
+        entities_now.push(player);
 
         // apply global acceleration rules
         for entity in entities_now.iter_mut() {
@@ -87,5 +69,11 @@ fn main() {
         scene::render(&entities_then, &entities_now);
         thread::sleep(Duration::from_secs_f32(dt));
     }
-    scene::close();
+}
+
+fn main() {
+    let terminal = scene::init();
+    let rx = user_input::create_data_channel();
+    sandbox_game(rx);
+    scene::close(terminal.unwrap());
 }
