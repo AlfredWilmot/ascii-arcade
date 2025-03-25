@@ -6,7 +6,7 @@ use ascii_arcade::{
 use ratatui::{
     layout::{Constraint, Layout},
     style::Style,
-    widgets::{Block, Borders, Paragraph},
+    widgets::{Block, BorderType, Borders, Paragraph},
     Frame,
 };
 use termion::event::Event;
@@ -20,7 +20,6 @@ const WELCOME: &str = r#"
 /_/   \_\___/\___|_|_/_/   \_\_|  \___\__,_|\__,_|\___|
 
 (press 'q' to exit)
-
 "#;
 
 pub enum Mode {
@@ -84,22 +83,40 @@ impl App {
 /// Generate and render a fame based on the current state of the app.
 pub fn ui(frame: &mut Frame, app: &App) {
     // create a border around the entire viewport
-    let border = Block::default().borders(Borders::ALL).style(Style::new());
+    let border = Block::default()
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .style(Style::new());
     frame.render_widget(border, frame.area());
 
-    // split the menu into two halves horizontally
-    let line_count: u16 = WELCOME.split('\n').count() as u16;
-    let menu = Layout::vertical([Constraint::Max(line_count), Constraint::Fill(1)]);
-    let [header, footer] = menu.areas(frame.area());
+    match app.state {
+        State::MenuSelection(_game) => {
+            // split the menu into two halves horizontally
+            let line_count: u16 = WELCOME.split('\n').count() as u16;
+            let menu = Layout::vertical([Constraint::Max(line_count), Constraint::Fill(1)]);
+            let [header, footer] = menu.areas(frame.area());
 
-    // fill the header with the WELCOME text
-    let header_text = Paragraph::new(WELCOME.to_string()).centered();
-    frame.render_widget(header_text, header);
+            // fill the header with the WELCOME text
+            let header_text = Paragraph::new(WELCOME.to_string()).centered();
+            frame.render_widget(header_text, header);
 
-    let footer_text = Paragraph::new("something, something, tada!").centered();
+            // create a pop-up for game-selection
+            let game_selection = Block::default()
+                .title("Game Selection")
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .style(Style::default());
 
-    frame.render_widget(footer_text, footer);
-    let _ = app;
+            let footer_regions = Layout::horizontal([
+                Constraint::Fill(1),
+                Constraint::Max(30),
+                Constraint::Fill(1),
+            ]);
+            let [_, selection_area, _] = footer_regions.areas(footer);
+            frame.render_widget(game_selection, selection_area);
+        }
+        State::Playing(_game) => {}
+    }
 }
 
 fn main() {
