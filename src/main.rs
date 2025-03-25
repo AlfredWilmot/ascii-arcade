@@ -19,8 +19,7 @@ const WELCOME: &str = r#"
  / ___ \\__ \ (__| | |/ ___ \| | | (_| (_| | (_| |  __/
 /_/   \_\___/\___|_|_/_/   \_\_|  \___\__,_|\__,_|\___|
 
-(press 'q' to exit)
-"#;
+(press 'q' to exit)"#;
 
 pub enum Mode {
     Default,
@@ -111,7 +110,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 Constraint::Fill(1),
                 Constraint::Max(30),
                 Constraint::Fill(1),
-            ]);
+            ])
+            .margin(1);
             let [_, selection_area, _] = footer_regions.areas(footer);
             frame.render_widget(game_selection, selection_area);
         }
