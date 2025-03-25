@@ -114,7 +114,7 @@ fn main() {
             })
             .expect("ERROR: could not draw frame!");
 
-        if let Ok(event) = rx.try_recv() {
+        if let Ok(event) = rx.recv() {
             if let Cmd::EXIT = app.update(event) {
                 break 'menu;
             };
