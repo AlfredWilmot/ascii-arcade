@@ -114,6 +114,8 @@ fn main() {
             })
             .expect("ERROR: could not draw frame!");
 
+        // block updating the main-menu between user-input events,
+        // much easier on the cpu than a rx.try_rec() + thread::sleep()
         if let Ok(event) = rx.recv() {
             if let Cmd::EXIT = app.update(event) {
                 break 'menu;
