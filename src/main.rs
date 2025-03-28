@@ -4,7 +4,7 @@ use ascii_arcade::{
     user_input::{self, Cmd},
 };
 use ratatui::{
-    layout::{Constraint, Layout},
+    layout::{Constraint, Direction, Layout},
     style::Style,
     widgets::{Block, BorderType, Borders, Paragraph},
     Frame,
@@ -92,7 +92,11 @@ pub fn ui(frame: &mut Frame, app: &App) {
         State::MenuSelection(_game) => {
             // split the menu into two halves horizontally
             let line_count: u16 = WELCOME.split('\n').count() as u16;
-            let menu = Layout::vertical([Constraint::Max(line_count), Constraint::Fill(1)]);
+
+            let menu = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Max(line_count), Constraint::Fill(1)]);
+
             let [header, footer] = menu.areas(frame.area());
 
             // fill the header with the WELCOME text
@@ -106,12 +110,15 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 .border_type(BorderType::Rounded)
                 .style(Style::default());
 
-            let footer_regions = Layout::horizontal([
-                Constraint::Fill(1),
-                Constraint::Max(30),
-                Constraint::Fill(1),
-            ])
-            .margin(1);
+            let footer_regions = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([
+                    Constraint::Fill(1),
+                    Constraint::Max(30),
+                    Constraint::Fill(1),
+                ])
+                .margin(1);
+
             let [_, selection_area, _] = footer_regions.areas(footer);
             frame.render_widget(game_selection, selection_area);
         }
