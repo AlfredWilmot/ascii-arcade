@@ -4,10 +4,7 @@ use ascii_arcade::{
     user_input::{self, Cmd},
 };
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
-    style::Style,
-    widgets::{Block, BorderType, Borders, Paragraph},
-    Frame,
+    layout::{Constraint, Direction, Layout, Rect}, style::{Style, Stylize}, text::Line, widgets::{Block, BorderType, Borders, Paragraph}, Frame
 };
 use termion::event::Event;
 
@@ -81,12 +78,13 @@ impl App {
 
 /// Generate and render a fame based on the current state of the app.
 pub fn ui(frame: &mut Frame, app: &App) {
+
     // create a border around the entire viewport
-    let border = Block::default()
+    let outer_border = Block::default()
         .borders(Borders::ALL)
         .border_type(BorderType::Rounded)
         .style(Style::new());
-    frame.render_widget(border, frame.area());
+    frame.render_widget(outer_border.white(), frame.area());
 
     match app.state {
         State::MenuSelection(_game) => {
@@ -105,7 +103,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
             // create a pop-up for game-selection
             let game_selection = Block::default()
-                .title("Game Selection")
+                .title(Line::from("< Select [ ↑↓/jk ] >").centered())
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded)
                 .style(Style::default());
@@ -114,13 +112,58 @@ pub fn ui(frame: &mut Frame, app: &App) {
                 .direction(Direction::Horizontal)
                 .constraints([
                     Constraint::Fill(1),
-                    Constraint::Max(30),
+                    Constraint::Max(31),
                     Constraint::Fill(1),
                 ])
                 .margin(1);
 
             let [_, selection_area, _] = footer_regions.areas(footer);
             frame.render_widget(game_selection, selection_area);
+
+            const GAME_COUNT: usize = 2;
+
+            let game_options = Layout::default()
+                .direction(Direction::Vertical)
+                .constraints([Constraint::Length(3);GAME_COUNT])
+                .margin(2);
+
+            let games: [Rect; GAME_COUNT] = game_options.areas(selection_area);
+
+            let opt: usize = 0;
+            let mut id: usize = 0;
+            for game_opt in games {
+
+                let selected_text = Paragraph::new(
+                        Line::from(format!(" Game_{} ", id)).centered().black()
+                    )
+                    .block(
+                        Block::new()
+                            .borders(Borders::ALL)
+                            .border_type(BorderType::Rounded)
+                            .style(Style::default()
+                        ).on_white().black()
+                    );
+                let text = Paragraph::new(
+                        Line::from(format!("Game_{}", id)).centered()
+                    )
+                    .block(
+                        Block::new()
+                            .borders(Borders::ALL)
+                            .border_type(BorderType::Rounded)
+                            .style(Style::default()
+                        )
+                    );
+
+                if opt == id {
+                    frame.render_widget(selected_text, game_opt);
+                } else {
+                    frame.render_widget(text, game_opt);
+                }
+                id+=1;
+            }
+
+            //frame.render_widget(, game1);
+
         }
         State::Playing(_game) => {}
     }
