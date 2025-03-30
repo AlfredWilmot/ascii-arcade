@@ -5,8 +5,12 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph},
     Frame,
 };
+use termion::event::{Event, Key};
 
-use crate::app::{App, State};
+use crate::{
+    app::{App, State},
+    user_input::Cmd,
+};
 
 /// welcome screen text (NOTE: trailing whitespace is necesary for centering text)
 const WELCOME: &str = r#"
@@ -29,79 +33,100 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
     match app.state {
         State::MenuSelection(_game) => {
-            render_menu(frame);
+            MainMenu::render_ui(frame);
         }
         State::Playing(_game) => {}
     }
 }
 
-fn render_menu(frame: &mut Frame) {
-    // split the menu into two halves horizontally
-    let line_count: u16 = WELCOME.split('\n').count() as u16;
+/// Interface for the main menu.
+pub struct MainMenu;
 
-    let menu = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Max(line_count), Constraint::Fill(1)]);
+impl MainMenu {
+    pub fn parse_event(event: Event) -> Cmd {
+        match event {
+            Event::Key(key) => match key {
+                Key::Char('l') | Key::Right => Cmd::MOVE(1, 0),
+                Key::Char('h') | Key::Left => Cmd::MOVE(-1, 0),
+                Key::Char('k') | Key::Up => Cmd::MOVE(0, -1),
+                Key::Char('j') | Key::Down => Cmd::MOVE(0, 1),
+                Key::Char('q') | Key::Esc => Cmd::EXIT,
+                Key::Char('\n') => Cmd::SELECT,
+                _ => Cmd::DEBUG(Event::Key(key)),
+            },
+            _ => Cmd::DEBUG(event),
+        }
+    }
+    pub fn process_cmds() {}
 
-    let [header, footer] = menu.areas(frame.area());
+    pub fn render_ui(frame: &mut Frame) {
+        // split the menu into two halves horizontally
+        let line_count: u16 = WELCOME.split('\n').count() as u16;
 
-    // fill the header with the WELCOME text
-    let header_text = Paragraph::new(WELCOME.to_string()).centered();
-    frame.render_widget(header_text, header);
+        let menu = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Max(line_count), Constraint::Fill(1)]);
 
-    // create a pop-up for game-selection
-    let game_selection = Block::default()
-        .title(Line::from("< Select [ ↑↓/jk ] >").centered())
-        .borders(Borders::ALL)
-        .border_type(BorderType::Rounded)
-        .style(Style::default());
+        let [header, footer] = menu.areas(frame.area());
 
-    let footer_regions = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Fill(1),
-            Constraint::Max(31),
-            Constraint::Fill(1),
-        ])
-        .margin(1);
+        // fill the header with the WELCOME text
+        let header_text = Paragraph::new(WELCOME.to_string()).centered();
+        frame.render_widget(header_text, header);
 
-    let [_, selection_area, _] = footer_regions.areas(footer);
-    frame.render_widget(game_selection, selection_area);
+        // create a pop-up for game-selection
+        let game_selection = Block::default()
+            .title(Line::from("< Select [ ↑↓/jk ] >").centered())
+            .borders(Borders::ALL)
+            .border_type(BorderType::Rounded)
+            .style(Style::default());
 
-    const GAME_COUNT: usize = 2;
+        let footer_regions = Layout::default()
+            .direction(Direction::Horizontal)
+            .constraints([
+                Constraint::Fill(1),
+                Constraint::Max(31),
+                Constraint::Fill(1),
+            ])
+            .margin(1);
 
-    let game_options = Layout::default()
-        .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3); GAME_COUNT])
-        .margin(2);
+        let [_, selection_area, _] = footer_regions.areas(footer);
+        frame.render_widget(game_selection, selection_area);
 
-    let games: [Rect; GAME_COUNT] = game_options.areas(selection_area);
+        const GAME_COUNT: usize = 2;
 
-    let opt: usize = 0;
-    for (id, game_opt) in games.into_iter().enumerate() {
-        let selected_text = Paragraph::new(Line::default().spans(vec![
-            "[↵]".light_green().bold(),
-            format!(" Game_{}", id).black(),
-        ]))
-        .block(
-            Block::new()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .style(Style::default())
-                .on_dark_gray()
-                .black(),
-        );
-        let text = Paragraph::new(Line::from(format!("  Game_{}", id)).left_aligned()).block(
-            Block::new()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .style(Style::default()),
-        );
+        let game_options = Layout::default()
+            .direction(Direction::Vertical)
+            .constraints([Constraint::Length(3); GAME_COUNT])
+            .margin(2);
 
-        if opt == id {
-            frame.render_widget(selected_text, game_opt);
-        } else {
-            frame.render_widget(text, game_opt);
+        let games: [Rect; GAME_COUNT] = game_options.areas(selection_area);
+
+        let opt: usize = 0;
+        for (id, game_opt) in games.into_iter().enumerate() {
+            let selected_text = Paragraph::new(Line::default().spans(vec![
+                "[↵]".light_green().bold(),
+                format!(" Game_{}", id).black(),
+            ]))
+            .block(
+                Block::new()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .style(Style::default())
+                    .on_dark_gray()
+                    .black(),
+            );
+            let text = Paragraph::new(Line::from(format!("  Game_{}", id)).left_aligned()).block(
+                Block::new()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .style(Style::default()),
+            );
+
+            if opt == id {
+                frame.render_widget(selected_text, game_opt);
+            } else {
+                frame.render_widget(text, game_opt);
+            }
         }
     }
 }

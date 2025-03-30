@@ -1,7 +1,8 @@
 use termion::event::Event;
 
 use crate::{
-    games::{Game, MainMenu, SandboxGame},
+    games::{Game, SandboxGame},
+    ui::MainMenu,
     user_input::Cmd,
 };
 

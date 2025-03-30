@@ -12,27 +12,6 @@ pub enum Game {
     Pong,
 }
 
-/// Interface for the main menu.
-pub struct MainMenu;
-
-impl MainMenu {
-    pub fn parse_event(event: Event) -> Cmd {
-        match event {
-            Event::Key(key) => match key {
-                Key::Char('l') | Key::Right => Cmd::MOVE(1, 0),
-                Key::Char('h') | Key::Left => Cmd::MOVE(-1, 0),
-                Key::Char('k') | Key::Up => Cmd::MOVE(0, -1),
-                Key::Char('j') | Key::Down => Cmd::MOVE(0, 1),
-                Key::Char('q') | Key::Esc => Cmd::EXIT,
-                Key::Char('\n') => Cmd::SELECT,
-                _ => Cmd::DEBUG(Event::Key(key)),
-            },
-            _ => Cmd::DEBUG(event),
-        }
-    }
-    pub fn process_cmds() {}
-}
-
 /// Interface for the sandbox game.
 pub struct SandboxGame;
 
