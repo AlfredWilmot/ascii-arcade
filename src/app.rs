@@ -33,7 +33,7 @@ impl App {
     /// update the state of the app based on user input and current state.
     pub fn update(&mut self, usr_input: Event) -> Cmd {
         // get the command based on the app state and user-input
-        let cmd = match &self.state {
+        match &self.state {
             // controlling the game that is being played.
             State::Playing(game) => match game {
                 Game::Sandbox => SandboxGame::parse_event(usr_input),
@@ -42,24 +42,6 @@ impl App {
 
             // controlling main menu if no game is at play.
             State::MenuSelection(_) => MainMenu::parse_event(usr_input),
-        };
-
-        // update the app state based on the generated command
-        match &self.state {
-            State::Playing(_) => match cmd {
-                Cmd::RETURN => {
-                    self.state = State::MenuSelection(Game::Sandbox);
-                    cmd
-                }
-                _ => cmd,
-            },
-            State::MenuSelection(game) => match cmd {
-                Cmd::SELECT => {
-                    self.state = State::Playing(*game);
-                    cmd
-                }
-                _ => cmd,
-            },
         }
     }
 }
