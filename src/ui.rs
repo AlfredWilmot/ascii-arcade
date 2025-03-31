@@ -33,11 +33,13 @@ pub fn ui(frame: &mut Frame, app: &App) {
         .style(Style::new());
     frame.render_widget(outer_border.white(), frame.area());
 
+    // render ui based on the state of the app
     match app.state {
         State::MenuSelection(game) => {
             game_selection(frame, game);
         }
         State::Playing(_game) => {}
+        _ => {}
     }
 }
 
@@ -52,7 +54,8 @@ impl MainMenu {
                 Key::Char('h') | Key::Left => Cmd::MOVE(-1, 0),
                 Key::Char('k') | Key::Up => Cmd::MOVE(0, -1),
                 Key::Char('j') | Key::Down => Cmd::MOVE(0, 1),
-                Key::Char('q') | Key::Esc => Cmd::EXIT,
+                Key::Char('q') => Cmd::EXIT,
+                Key::Esc => Cmd::RETURN,
                 Key::Char('\n') => Cmd::SELECT,
                 _ => Cmd::DEBUG(Event::Key(key)),
             },

@@ -1,8 +1,8 @@
 use ascii_arcade::{
-    app::{App, Mode},
+    app::{App, Mode, State},
     scene,
     ui::ui,
-    user_input::{self, Cmd},
+    user_input,
 };
 
 fn main() {
@@ -20,7 +20,8 @@ fn main() {
         // block updating the main-menu between user-input events,
         // much easier on the cpu than a rx.try_rec() + thread::sleep()
         if let Ok(event) = rx.recv() {
-            if let Cmd::EXIT = app.update(event) {
+            // update the app based on the event, and handle the new state
+            if let State::Exit = app.update(event) {
                 break 'menu;
             };
         }
