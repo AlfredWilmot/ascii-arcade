@@ -37,7 +37,7 @@ impl App {
             // controlling the game that is being played.
             State::Playing(game) => match game {
                 Game::Sandbox => SandboxGame::parse_event(usr_input),
-                Game::Pong => Cmd::EXIT,
+                _ => Cmd::EXIT,
             },
 
             // controlling main menu if no game is at play.
