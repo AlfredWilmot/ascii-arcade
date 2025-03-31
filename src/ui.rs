@@ -5,11 +5,12 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, Paragraph},
     Frame,
 };
+use strum::{EnumCount, IntoEnumIterator};
 use termion::event::{Event, Key};
 
 use crate::{
     app::{App, State},
-    games::GAME_COUNT,
+    games::Game,
     user_input::Cmd,
 };
 
@@ -33,8 +34,8 @@ pub fn ui(frame: &mut Frame, app: &App) {
     frame.render_widget(outer_border.white(), frame.area());
 
     match app.state {
-        State::MenuSelection(_game) => {
-            game_selection(frame);
+        State::MenuSelection(game) => {
+            game_selection(frame, game);
         }
         State::Playing(_game) => {}
     }
@@ -61,7 +62,8 @@ impl MainMenu {
     pub fn process_cmds() {}
 }
 
-fn game_selection(frame: &mut Frame) {
+/// renders the game-selection interface onto the given frame.
+fn game_selection(frame: &mut Frame, selected_game: Game) {
     // split the menu into two halves horizontally
     let line_count: u16 = WELCOME.split('\n').count() as u16;
 
@@ -96,36 +98,36 @@ fn game_selection(frame: &mut Frame) {
 
     let game_options = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(3); GAME_COUNT])
+        .constraints([Constraint::Length(3); Game::COUNT])
         .margin(2);
 
-    let games: [Rect; GAME_COUNT] = game_options.areas(selection_area);
+    for (game, area) in Game::iter().zip::<[Rect; Game::COUNT]>(game_options.areas(selection_area))
+    {
+        // render selected game
+        if game == selected_game {
+            let selected_text = Paragraph::new(Line::default().spans(vec![
+                "[↵]".light_green().bold(),
+                format!(" {:?}", game).black(),
+            ]))
+            .block(
+                Block::new()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .style(Style::default())
+                    .on_dark_gray()
+                    .black(),
+            );
+            frame.render_widget(selected_text, area);
 
-    let opt: usize = 0;
-    for (id, game_opt) in games.into_iter().enumerate() {
-        let selected_text = Paragraph::new(Line::default().spans(vec![
-            "[↵]".light_green().bold(),
-            format!(" Game_{}", id).black(),
-        ]))
-        .block(
-            Block::new()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .style(Style::default())
-                .on_dark_gray()
-                .black(),
-        );
-        let text = Paragraph::new(Line::from(format!("  Game_{}", id)).left_aligned()).block(
-            Block::new()
-                .borders(Borders::ALL)
-                .border_type(BorderType::Rounded)
-                .style(Style::default()),
-        );
-
-        if opt == id {
-            frame.render_widget(selected_text, game_opt);
+        // render unselected games
         } else {
-            frame.render_widget(text, game_opt);
+            let text = Paragraph::new(Line::from(format!("  {:?}", game)).left_aligned()).block(
+                Block::new()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded)
+                    .style(Style::default()),
+            );
+            frame.render_widget(text, area);
         }
     }
 }
