@@ -14,6 +14,7 @@ pub enum Game {
     Sandbox,
     Pong,
 }
+pub const GAME_COUNT: usize = 2;
 
 /// Interface for the sandbox game.
 pub struct SandboxGame;

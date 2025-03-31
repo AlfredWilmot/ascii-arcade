@@ -9,6 +9,7 @@ use termion::event::{Event, Key};
 
 use crate::{
     app::{App, State},
+    games::GAME_COUNT,
     user_input::Cmd,
 };
 
@@ -33,7 +34,7 @@ pub fn ui(frame: &mut Frame, app: &App) {
 
     match app.state {
         State::MenuSelection(_game) => {
-            MainMenu::render_ui(frame);
+            game_selection(frame);
         }
         State::Playing(_game) => {}
     }
@@ -58,75 +59,73 @@ impl MainMenu {
         }
     }
     pub fn process_cmds() {}
+}
 
-    pub fn render_ui(frame: &mut Frame) {
-        // split the menu into two halves horizontally
-        let line_count: u16 = WELCOME.split('\n').count() as u16;
+fn game_selection(frame: &mut Frame) {
+    // split the menu into two halves horizontally
+    let line_count: u16 = WELCOME.split('\n').count() as u16;
 
-        let menu = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Max(line_count), Constraint::Fill(1)]);
+    let menu = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Max(line_count), Constraint::Fill(1)]);
 
-        let [header, footer] = menu.areas(frame.area());
+    let [header, footer] = menu.areas(frame.area());
 
-        // fill the header with the WELCOME text
-        let header_text = Paragraph::new(WELCOME.to_string()).centered();
-        frame.render_widget(header_text, header);
+    // fill the header with the WELCOME text
+    let header_text = Paragraph::new(WELCOME.to_string()).centered();
+    frame.render_widget(header_text, header);
 
-        // create a pop-up for game-selection
-        let game_selection = Block::default()
-            .title(Line::from("< Select [ ↑↓/jk ] >").centered())
-            .borders(Borders::ALL)
-            .border_type(BorderType::Rounded)
-            .style(Style::default());
+    // create a pop-up for game-selection
+    let game_selection = Block::default()
+        .title(Line::from("< Select [ ↑↓/jk ] >").centered())
+        .borders(Borders::ALL)
+        .border_type(BorderType::Rounded)
+        .style(Style::default());
 
-        let footer_regions = Layout::default()
-            .direction(Direction::Horizontal)
-            .constraints([
-                Constraint::Fill(1),
-                Constraint::Max(31),
-                Constraint::Fill(1),
-            ])
-            .margin(1);
+    let footer_regions = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Fill(1),
+            Constraint::Max(31),
+            Constraint::Fill(1),
+        ])
+        .margin(1);
 
-        let [_, selection_area, _] = footer_regions.areas(footer);
-        frame.render_widget(game_selection, selection_area);
+    let [_, selection_area, _] = footer_regions.areas(footer);
+    frame.render_widget(game_selection, selection_area);
 
-        const GAME_COUNT: usize = 2;
+    let game_options = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([Constraint::Length(3); GAME_COUNT])
+        .margin(2);
 
-        let game_options = Layout::default()
-            .direction(Direction::Vertical)
-            .constraints([Constraint::Length(3); GAME_COUNT])
-            .margin(2);
+    let games: [Rect; GAME_COUNT] = game_options.areas(selection_area);
 
-        let games: [Rect; GAME_COUNT] = game_options.areas(selection_area);
+    let opt: usize = 0;
+    for (id, game_opt) in games.into_iter().enumerate() {
+        let selected_text = Paragraph::new(Line::default().spans(vec![
+            "[↵]".light_green().bold(),
+            format!(" Game_{}", id).black(),
+        ]))
+        .block(
+            Block::new()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .style(Style::default())
+                .on_dark_gray()
+                .black(),
+        );
+        let text = Paragraph::new(Line::from(format!("  Game_{}", id)).left_aligned()).block(
+            Block::new()
+                .borders(Borders::ALL)
+                .border_type(BorderType::Rounded)
+                .style(Style::default()),
+        );
 
-        let opt: usize = 0;
-        for (id, game_opt) in games.into_iter().enumerate() {
-            let selected_text = Paragraph::new(Line::default().spans(vec![
-                "[↵]".light_green().bold(),
-                format!(" Game_{}", id).black(),
-            ]))
-            .block(
-                Block::new()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded)
-                    .style(Style::default())
-                    .on_dark_gray()
-                    .black(),
-            );
-            let text = Paragraph::new(Line::from(format!("  Game_{}", id)).left_aligned()).block(
-                Block::new()
-                    .borders(Borders::ALL)
-                    .border_type(BorderType::Rounded)
-                    .style(Style::default()),
-            );
-
-            if opt == id {
-                frame.render_widget(selected_text, game_opt);
-            } else {
-                frame.render_widget(text, game_opt);
-            }
+        if opt == id {
+            frame.render_widget(selected_text, game_opt);
+        } else {
+            frame.render_widget(text, game_opt);
         }
     }
 }
