@@ -1,5 +1,6 @@
 use std::{sync::mpsc::Receiver, thread, time::Duration};
 
+use strum_macros::{EnumCount, EnumIter};
 use termion::event::{Event, Key, MouseButton, MouseEvent};
 
 use crate::{
@@ -9,12 +10,11 @@ use crate::{
 };
 
 // the different games the user can play
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug, Copy, EnumIter, PartialEq, Eq, EnumCount)]
 pub enum Game {
     Sandbox,
     Pong,
 }
-pub const GAME_COUNT: usize = 2;
 
 /// Interface for the sandbox game.
 pub struct SandboxGame;
