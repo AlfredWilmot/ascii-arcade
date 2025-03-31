@@ -1,6 +1,6 @@
 use std::{sync::mpsc::Receiver, thread, time::Duration};
 
-use strum_macros::{EnumCount, EnumIter};
+use strum_macros::{EnumCount, EnumIter, FromRepr};
 use termion::event::{Event, Key, MouseButton, MouseEvent};
 
 use crate::{
@@ -10,7 +10,8 @@ use crate::{
 };
 
 // the different games the user can play
-#[derive(Clone, Debug, Copy, EnumIter, PartialEq, Eq, EnumCount)]
+#[derive(Clone, Debug, Copy, EnumIter, PartialEq, Eq, EnumCount, FromRepr)]
+#[repr(usize)]
 pub enum Game {
     Sandbox,
     Pong,
@@ -28,7 +29,8 @@ impl SandboxGame {
                 Key::Char('a') => Cmd::MOVE(-1, 0),
                 Key::Char('w') => Cmd::MOVE(0, -1),
                 Key::Char('s') => Cmd::MOVE(0, 1),
-                Key::Char('q') | Key::Esc => Cmd::EXIT,
+                Key::Char('q') => Cmd::EXIT,
+                Key::Esc => Cmd::RETURN,
                 _ => Cmd::DEBUG(Event::Key(key)),
             },
             Event::Mouse(mouse) => match mouse {
