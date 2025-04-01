@@ -21,7 +21,7 @@ fn main() {
         // much easier on the cpu than a rx.try_rec() + thread::sleep()
         if let Ok(event) = rx.recv() {
             // update the app based on the event, and handle the new state
-            if let State::Exit = app.update(event) {
+            if let State::Exit = app.update(event, &rx) {
                 break 'menu;
             };
         }
