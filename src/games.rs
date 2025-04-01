@@ -72,7 +72,7 @@ impl SandboxGame {
     }
 
     /// Activate the game loop.
-    pub fn play(input_reader: Receiver<Event>) {
+    pub fn play(input_reader: &Receiver<Event>) -> Cmd {
         //
         // INITIALISATION
         //
@@ -91,7 +91,7 @@ impl SandboxGame {
         //
         // GAME LOOP
         //
-        'game: loop {
+        '_game: loop {
             // capture the current state of the scene
             entities_then = entities_now.to_vec();
 
@@ -101,12 +101,11 @@ impl SandboxGame {
             // process user input.
             if let Ok(event) = input_reader.try_recv() {
                 let cmd = SandboxGame::parse_event(event);
-                if let Cmd::EXIT | Cmd::RETURN =
-                    SandboxGame::process_cmds(&mut player, &mut entities_now, cmd)
-                {
-                    break 'game;
-                }
-            }
+                match cmd {
+                    Cmd::EXIT | Cmd::RETURN => return cmd,
+                    _ => SandboxGame::process_cmds(&mut player, &mut entities_now, cmd),
+                };
+            };
 
             // reinsert the player to the entity pool.
             entities_now.push(player);
