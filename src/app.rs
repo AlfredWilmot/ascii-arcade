@@ -1,7 +1,13 @@
+use std::sync::mpsc::Receiver;
+
 use strum::EnumCount;
 use termion::event::Event;
 
-use crate::{games::Game, ui::MainMenu, user_input::Cmd};
+use crate::{
+    games::{Game, SandboxGame},
+    ui::MainMenu,
+    user_input::Cmd,
+};
 
 pub enum Mode {
     Default,
@@ -30,7 +36,7 @@ impl App {
         }
     }
     /// update the state of the app based on user input and current state.
-    pub fn update(&mut self, usr_input: Event) -> State {
+    pub fn update(&mut self, usr_input: Event, rx: &Receiver<Event>) -> State {
         // get the command based on the app state and user-input
         self.state = match self.state {
             // controlling main menu if no game is at play.
@@ -65,11 +71,18 @@ impl App {
                 Cmd::EXIT => State::Exit,
                 _ => self.state.clone(),
             },
-            State::Playing(game) => match MainMenu::parse_event(usr_input) {
-                Cmd::RETURN => State::MenuSelection(game),
-                Cmd::EXIT => State::Exit,
-                _ => self.state.clone(),
-            },
+            State::Playing(game) => {
+                let game_done = match game {
+                    Game::Sandbox => SandboxGame::play(rx),
+                    _ => Cmd::RETURN,
+                };
+
+                match game_done {
+                    Cmd::RETURN => State::MenuSelection(game),
+                    Cmd::EXIT => State::Exit,
+                    _ => self.state.clone(),
+                }
+            }
             _ => State::Exit,
         };
         // return the resulting state
