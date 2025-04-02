@@ -1,21 +1,19 @@
-```
-    _             _ _    _                      _
-   / \   ___  ___(_|_)  / \   _ __ ___ __ _  __| | ___
-  / _ \ / __|/ __| | | / _ \ | '__/ __/ _` |/ _` |/ _ \
- / ___ \\__ \ (__| | |/ ___ \| | | (_| (_| | (_| |  __/
-/_/   \_\___/\___|_|_/_/   \_\_|  \___\__,_|\__,_|\___|
-```
+# AsciiArcade
 
-> [!NOTE]
+> [!WARNING]
 > 🚧 Work In Progress 🚧
 
-### Demos
+<img src="./examples/gifs/menu.gif" alt="linear collision" style="width:400px;height:250px;">
 
-| `linear_collision` |
-| --- |
-| <img src="./examples/gifs/linear_collision_demo.gif" alt="linear collision" style="width:400px;height:250px;"> |
-| (execute) `cargo run --example linear_collision` |
-| (controls) `move player (wasd), spawn entity (LMB), exit (q)` |
+`cargo run`
+
+## Games
+
+`Sandbox`
+
+<img src="./examples/gifs/sandbox_game.gif" alt="linear collision" style="width:400px;height:250px;">
+
+`move player (wasd), spawn entity (LMB), exit (q)`
 
 ### References
 - [Ericson, Christer. Real-time collision detection. Crc Press, 2004.](https://www.sciencedirect.com/book/9781558607323/real-time-collision-detection)
