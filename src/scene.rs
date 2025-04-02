@@ -29,7 +29,7 @@ pub fn init() -> Result<MouseEnabledTerminal, Box<dyn Error>> {
 }
 
 /// clean-up terminal
-pub fn close(mut terminal: MouseEnabledTerminal) {
+pub fn close(terminal: &mut MouseEnabledTerminal) {
     _ = terminal.set_cursor_position(Position::new(0, 0));
     _ = terminal.show_cursor();
     _ = terminal.clear();

@@ -7,6 +7,7 @@ use termion::input::TermRead;
 
 use crate::entity::EntityType;
 
+#[derive(PartialEq)]
 pub enum Cmd {
     STOP,
     MOVE(i8, i8),
@@ -15,6 +16,13 @@ pub enum Cmd {
     SELECT,
     RETURN,
     EXIT,
+}
+/// Aliases for direction vectors
+impl Cmd {
+    pub const RIGHT: Cmd = Cmd::MOVE(1, 0);
+    pub const LEFT: Cmd = Cmd::MOVE(-1, 0);
+    pub const UP: Cmd = Cmd::MOVE(0, -1);
+    pub const DOWN: Cmd = Cmd::MOVE(0, 1);
 }
 
 /// creates threads for monitoring various event sources and forwards

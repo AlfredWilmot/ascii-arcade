@@ -1,36 +1,20 @@
+use std::{sync::mpsc::Receiver, thread, time::Duration};
+
+use strum_macros::{EnumCount, EnumIter, FromRepr};
 use termion::event::{Event, Key, MouseButton, MouseEvent};
 
 use crate::{
-    entity::{vector::EuclidianVector, Entities, Entity, EntityType},
+    entity::{update, vector::EuclidianVector, Entities, Entity, EntityType},
+    scene,
     user_input::Cmd,
 };
 
 // the different games the user can play
-#[derive(Clone, Copy)]
+#[derive(Clone, Debug, Copy, EnumIter, PartialEq, Eq, EnumCount, FromRepr)]
+#[repr(usize)]
 pub enum Game {
     Sandbox,
     Pong,
-}
-
-/// Interface for the main menu.
-pub struct MainMenu;
-
-impl MainMenu {
-    pub fn parse_event(event: Event) -> Cmd {
-        match event {
-            Event::Key(key) => match key {
-                Key::Char('l') | Key::Right => Cmd::MOVE(1, 0),
-                Key::Char('h') | Key::Left => Cmd::MOVE(-1, 0),
-                Key::Char('k') | Key::Up => Cmd::MOVE(0, -1),
-                Key::Char('j') | Key::Down => Cmd::MOVE(0, 1),
-                Key::Char('q') | Key::Esc => Cmd::EXIT,
-                Key::Char('\n') => Cmd::SELECT,
-                _ => Cmd::DEBUG(Event::Key(key)),
-            },
-            _ => Cmd::DEBUG(event),
-        }
-    }
-    pub fn process_cmds() {}
 }
 
 /// Interface for the sandbox game.
@@ -45,7 +29,8 @@ impl SandboxGame {
                 Key::Char('a') => Cmd::MOVE(-1, 0),
                 Key::Char('w') => Cmd::MOVE(0, -1),
                 Key::Char('s') => Cmd::MOVE(0, 1),
-                Key::Char('q') | Key::Esc => Cmd::EXIT,
+                Key::Char('q') => Cmd::EXIT,
+                Key::Esc => Cmd::RETURN,
                 _ => Cmd::DEBUG(Event::Key(key)),
             },
             Event::Mouse(mouse) => match mouse {
@@ -84,5 +69,68 @@ impl SandboxGame {
             _ => {}
         }
         cmd
+    }
+
+    /// Activate the game loop.
+    pub fn play(input_reader: &Receiver<Event>) -> Cmd {
+        //
+        // INITIALISATION
+        //
+
+        const TIME_DELTA_MS: u64 = 10;
+        let dt = Duration::from_millis(TIME_DELTA_MS).as_secs_f32();
+
+        // keep this up-to-date on every game-loop cycle so we can query the scene by coordinates
+        let mut entities_now: Entities = Vec::new();
+        let mut entities_then: Entities;
+
+        // player to be controlled by user
+        let player = Entity::new(EntityType::Player, (1.0, 1.0));
+        entities_now.push(player);
+
+        //
+        // GAME LOOP
+        //
+        '_game: loop {
+            // capture the current state of the scene
+            entities_then = entities_now.to_vec();
+
+            // extract the player from the entity pool.
+            let mut player = entities_now.pop().unwrap();
+
+            // process user input.
+            if let Ok(event) = input_reader.try_recv() {
+                let cmd = SandboxGame::parse_event(event);
+                match cmd {
+                    Cmd::EXIT | Cmd::RETURN => return cmd,
+                    _ => SandboxGame::process_cmds(&mut player, &mut entities_now, cmd),
+                };
+            };
+
+            // reinsert the player to the entity pool.
+            entities_now.push(player);
+
+            // apply global acceleration rules
+            for entity in entities_now.iter_mut() {
+                // assume the earth is beneath our feet
+                let gravity = entity.target_acc(0.0, 9.81);
+                entity.apply_force(gravity);
+
+                // simulate frictional forces
+                let friction: EuclidianVector = if entity.grounded {
+                    entity.target_vel(entity.vel.x * 0.9, entity.vel.y)
+                } else {
+                    entity.target_vel(entity.vel.x * 0.99, entity.vel.y)
+                };
+                entity.apply_force(friction);
+            }
+
+            // resolve physics calculations
+            update(&mut entities_now);
+
+            // physics calculations done, render!
+            scene::render(&entities_then, &entities_now);
+            thread::sleep(Duration::from_secs_f32(dt));
+        }
     }
 }
