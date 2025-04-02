@@ -36,12 +36,21 @@ impl App {
         }
     }
     /// update the state of the app based on user input and current state.
-    pub fn update(&mut self, usr_input: Event, rx: &Receiver<Event>) -> State {
+    pub fn update(&mut self, rx: &Receiver<Event>){
+        let usr_input: Event;
+        // block updating the main-menu between user-input events,
+        // much easier on the cpu than a rx.try_rec() + thread::sleep()
+        if let Ok(event) = rx.recv() {
+            usr_input = event;
+        } else {
+            return;
+        }
+
         // get the command based on the app state and user-input
-        self.state = match self.state {
+        let new_state: Option<State> = match self.state {
             // controlling main menu if no game is at play.
             State::MenuSelection(game) => match MainMenu::parse_event(usr_input) {
-                Cmd::SELECT => State::Playing(game),
+                Cmd::SELECT => Some(State::Playing(game)),
                 Cmd::UP => {
                     let mut new_game = game as usize;
                     if new_game == 0 {
@@ -50,9 +59,10 @@ impl App {
                         new_game -= 1;
                     }
                     // select the new game, default to the top of the list
-                    State::MenuSelection(
+                    let result = State::MenuSelection(
                         Game::from_repr(new_game).unwrap_or(Game::from_repr(0).expect("ERROR")),
-                    )
+                    );
+                    Some(result)
                 }
                 Cmd::DOWN => {
                     let mut new_game = game as usize;
@@ -62,14 +72,15 @@ impl App {
                         new_game += 1;
                     }
                     // select the new game, default to the bottom of the list
-                    State::MenuSelection(
+                    let result = State::MenuSelection(
                         Game::from_repr(new_game)
                             .unwrap_or(Game::from_repr(Game::COUNT - 1).expect("ERROR")),
-                    )
+                    );
+                    Some(result)
                 }
 
-                Cmd::EXIT => State::Exit,
-                _ => self.state.clone(),
+                Cmd::EXIT => Some(State::Exit),
+                _ => None,
             },
             State::Playing(game) => {
                 let game_done = match game {
@@ -78,14 +89,17 @@ impl App {
                 };
 
                 match game_done {
-                    Cmd::RETURN => State::MenuSelection(game),
-                    Cmd::EXIT => State::Exit,
-                    _ => self.state.clone(),
+                    Cmd::RETURN => Some(State::MenuSelection(game)),
+                    Cmd::EXIT => Some(State::Exit),
+                    _ => None,
                 }
             }
-            _ => State::Exit,
+            _ => Some(State::Exit),
         };
-        // return the resulting state
-        self.state.clone()
+
+        // update the app state if the new_state is valid
+        if let Some(state) = new_state {
+            self.state = state;
+        }
     }
 }
