@@ -5,5 +5,5 @@ fn main() {
     let terminal = scene::init();
     let rx = user_input::create_data_channel();
     SandboxGame::play(&rx);
-    scene::close(terminal.unwrap());
+    scene::close(&mut terminal.unwrap());
 }
