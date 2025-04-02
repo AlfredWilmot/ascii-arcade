@@ -17,15 +17,16 @@ fn main() {
             })
             .expect("ERROR: could not draw frame!");
 
-        // block updating the main-menu between user-input events,
-        // much easier on the cpu than a rx.try_rec() + thread::sleep()
-        if let Ok(event) = rx.recv() {
-            // update the app based on the event, and handle the new state
-            if let State::Exit = app.update(event, &rx) {
-                break 'menu;
-            };
+        match app.state {
+            // clear the terminal if previously playing a game
+            State::Playing(_) => {
+                _ = terminal.clear();
+            }
+            State::Exit => break 'menu,
+            _ => {}
         }
+        app.update(&rx);
     }
 
-    scene::close(terminal);
+    scene::close(&mut terminal);
 }

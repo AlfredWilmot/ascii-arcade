@@ -36,7 +36,7 @@ impl App {
         }
     }
     /// update the state of the app based on user input and current state.
-    pub fn update(&mut self, rx: &Receiver<Event>){
+    pub fn update(&mut self, rx: &Receiver<Event>) {
         let usr_input: Event;
         // block updating the main-menu between user-input events,
         // much easier on the cpu than a rx.try_rec() + thread::sleep()
