@@ -10,6 +10,8 @@ mod tests_angle {
         coordinate: (f32, f32),
     }
 
+    // points to test measuring an angle from
+    const ORIGIN: (f32, f32) = (0.0, 0.0);
     const Q1: (f32, f32) = (6.66, -6.66); // (top-right)
     const Q2: (f32, f32) = (-6.66, 6.66); // (top-left)
     const Q3: (f32, f32) = (-6.66, 6.66); // (btm-left)
@@ -26,14 +28,14 @@ mod tests_angle {
             }
         }
 
-        /// Specify a new origin.
-        fn in_quadrant(mut self, coord: (f32, f32)) -> Self {
+        /// specify a new starting point for the angle line.
+        fn from(mut self, coord: (f32, f32)) -> Self {
             self.origin = coord;
             self.coordinate = coord;
             self
         }
 
-        /// specify x-displacement.
+        /// specify x-displacement of line forming angle.
         fn move_x(mut self, x: f32) -> Self {
             self.coordinate.0 += x;
             self
@@ -52,528 +54,136 @@ mod tests_angle {
         }
     }
 
-    // ----------------- //
-    // TESTING AT ORIGIN //
-    // ----------------- //
-
     #[test]
-    fn test_0_deg_at_origin() {
-        GetAngleTest::expect(0.0).move_x(1.0).move_y(0.0).run();
+    fn test_0_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(0.0)
+                .from(start)
+                .move_x(1.0)
+                .move_y(0.0)
+                .run();
+        }
     }
 
     #[test]
-    fn test_45_deg_at_origin() {
-        GetAngleTest::expect(45.0).move_x(1.0).move_y(-1.0).run();
+    fn test_45_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(45.0)
+                .from(start)
+                .move_x(1.0)
+                .move_y(-1.0)
+                .run();
+        }
     }
 
     #[test]
-    fn test_60_deg_at_origin() {
-        GetAngleTest::expect(60.0)
-            .move_x(1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
+    fn test_60_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(60.0)
+                .from(start)
+                .move_x(1.0)
+                .move_y(-f32::sqrt(3.0))
+                .run();
+        }
     }
 
     #[test]
-    fn test_90_deg_at_origin() {
-        GetAngleTest::expect(90.0).move_x(0.0).move_y(-1.0).run();
+    fn test_90_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(90.0)
+                .from(start)
+                .move_x(0.0)
+                .move_y(-1.0)
+                .run();
+        }
     }
 
     #[test]
-    fn test_120_deg_at_origin() {
-        GetAngleTest::expect(120.0)
-            .move_x(-1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
+    fn test_120_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(120.0)
+                .from(start)
+                .move_x(-1.0)
+                .move_y(-f32::sqrt(3.0))
+                .run();
+        }
     }
 
     #[test]
-    fn test_135_deg_at_origin() {
-        GetAngleTest::expect(135.0).move_x(-1.0).move_y(-1.0).run();
+    fn test_135_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(135.0)
+                .from(start)
+                .move_x(-1.0)
+                .move_y(-1.0)
+                .run();
+        }
     }
 
     #[test]
-    fn test_180_deg_at_origin() {
-        GetAngleTest::expect(180.0).move_x(-1.0).move_y(0.0).run();
+    fn test_180_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(180.0)
+                .from(start)
+                .move_x(-1.0)
+                .move_y(0.0)
+                .run();
+        }
     }
 
     #[test]
-    fn test_225_deg_at_origin() {
-        GetAngleTest::expect(225.0).move_x(-1.0).move_y(1.0).run();
+    fn test_225_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(225.0)
+                .from(start)
+                .move_x(-1.0)
+                .move_y(1.0)
+                .run();
+        }
     }
 
     #[test]
-    fn test_240_deg_at_origin() {
-        GetAngleTest::expect(240.0)
-            .move_x(-1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
+    fn test_240_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(240.0)
+                .from(start)
+                .move_x(-1.0)
+                .move_y(f32::sqrt(3.0))
+                .run();
+        }
     }
 
     #[test]
-    fn test_270_deg_at_origin() {
-        GetAngleTest::expect(270.0).move_x(0.0).move_y(1.0).run();
+    fn test_270_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(270.0)
+                .from(start)
+                .move_x(0.0)
+                .move_y(1.0)
+                .run();
+        }
     }
 
     #[test]
-    fn test_300_deg_at_origin() {
-        GetAngleTest::expect(300.0)
-            .move_x(1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
+    fn test_300_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(300.0)
+                .from(start)
+                .move_x(1.0)
+                .move_y(f32::sqrt(3.0))
+                .run();
+        }
     }
 
     #[test]
-    fn test_315_deg_at_origin() {
-        GetAngleTest::expect(315.0).move_x(1.0).move_y(1.0).run();
-    }
-
-    // ---------------------------------- //
-    // TESTING AT Q1 (TOP-RIGHT QUADRANT) //
-    // ---------------------------------- //
-
-    #[test]
-    fn test_0_deg_in_q1() {
-        GetAngleTest::expect(0.0)
-            .in_quadrant(Q1)
-            .move_x(1.0)
-            .move_y(0.0)
-            .run();
-    }
-
-    #[test]
-    fn test_45_deg_in_q1() {
-        GetAngleTest::expect(45.0)
-            .in_quadrant(Q1)
-            .move_x(1.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_60_deg_in_q1() {
-        GetAngleTest::expect(60.0)
-            .in_quadrant(Q1)
-            .move_x(1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_90_deg_in_q1() {
-        GetAngleTest::expect(90.0)
-            .in_quadrant(Q1)
-            .move_x(0.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_120_deg_in_q1() {
-        GetAngleTest::expect(120.0)
-            .in_quadrant(Q1)
-            .move_x(-1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_135_deg_in_q1() {
-        GetAngleTest::expect(135.0)
-            .in_quadrant(Q1)
-            .move_x(-1.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_180_deg_in_q1() {
-        GetAngleTest::expect(180.0)
-            .in_quadrant(Q1)
-            .move_x(-1.0)
-            .move_y(0.0)
-            .run();
-    }
-
-    #[test]
-    fn test_225_deg_in_q1() {
-        GetAngleTest::expect(225.0)
-            .in_quadrant(Q1)
-            .move_x(-1.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_240_deg_in_q1() {
-        GetAngleTest::expect(240.0)
-            .in_quadrant(Q1)
-            .move_x(-1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_270_deg_in_q1() {
-        GetAngleTest::expect(270.0)
-            .in_quadrant(Q1)
-            .move_x(0.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_300_deg_in_q1() {
-        GetAngleTest::expect(300.0)
-            .in_quadrant(Q1)
-            .move_x(1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_315_deg_in_q1() {
-        GetAngleTest::expect(315.0)
-            .in_quadrant(Q1)
-            .move_x(1.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    // --------------------------------- //
-    // TESTING AT Q2 (TOP-LEFT QUADRANT) //
-    // --------------------------------- //
-
-    #[test]
-    fn test_0_deg_in_q2() {
-        GetAngleTest::expect(0.0)
-            .in_quadrant(Q2)
-            .move_x(1.0)
-            .move_y(0.0)
-            .run();
-    }
-
-    #[test]
-    fn test_45_deg_in_q2() {
-        GetAngleTest::expect(45.0)
-            .in_quadrant(Q2)
-            .move_x(1.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_60_deg_in_q2() {
-        GetAngleTest::expect(60.0)
-            .in_quadrant(Q2)
-            .move_x(1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_90_deg_in_q2() {
-        GetAngleTest::expect(90.0)
-            .in_quadrant(Q2)
-            .move_x(0.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_120_deg_in_q2() {
-        GetAngleTest::expect(120.0)
-            .in_quadrant(Q2)
-            .move_x(-1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_135_deg_in_q2() {
-        GetAngleTest::expect(135.0)
-            .in_quadrant(Q2)
-            .move_x(-1.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_180_deg_in_q2() {
-        GetAngleTest::expect(180.0)
-            .in_quadrant(Q2)
-            .move_x(-1.0)
-            .move_y(0.0)
-            .run();
-    }
-
-    #[test]
-    fn test_225_deg_in_q2() {
-        GetAngleTest::expect(225.0)
-            .in_quadrant(Q2)
-            .move_x(-1.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_240_deg_in_q2() {
-        GetAngleTest::expect(240.0)
-            .in_quadrant(Q2)
-            .move_x(-1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_270_deg_in_q2() {
-        GetAngleTest::expect(270.0)
-            .in_quadrant(Q2)
-            .move_x(0.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_300_deg_in_q2() {
-        GetAngleTest::expect(300.0)
-            .in_quadrant(Q2)
-            .move_x(1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_315_deg_in_q2() {
-        GetAngleTest::expect(315.0)
-            .in_quadrant(Q2)
-            .move_x(1.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    // --------------------------------- //
-    // TESTING AT Q3 (BTM-LEFT QUADRANT) //
-    // --------------------------------- //
-
-    #[test]
-    fn test_0_deg_in_q3() {
-        GetAngleTest::expect(0.0)
-            .in_quadrant(Q3)
-            .move_x(1.0)
-            .move_y(0.0)
-            .run();
-    }
-
-    #[test]
-    fn test_45_deg_in_q3() {
-        GetAngleTest::expect(45.0)
-            .in_quadrant(Q3)
-            .move_x(1.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_60_deg_in_q3() {
-        GetAngleTest::expect(60.0)
-            .in_quadrant(Q3)
-            .move_x(1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_90_deg_in_q3() {
-        GetAngleTest::expect(90.0)
-            .in_quadrant(Q3)
-            .move_x(0.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_120_deg_in_q3() {
-        GetAngleTest::expect(120.0)
-            .in_quadrant(Q3)
-            .move_x(-1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_135_deg_in_q3() {
-        GetAngleTest::expect(135.0)
-            .in_quadrant(Q3)
-            .move_x(-1.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_180_deg_in_q3() {
-        GetAngleTest::expect(180.0)
-            .in_quadrant(Q3)
-            .move_x(-1.0)
-            .move_y(0.0)
-            .run();
-    }
-
-    #[test]
-    fn test_225_deg_in_q3() {
-        GetAngleTest::expect(225.0)
-            .in_quadrant(Q3)
-            .move_x(-1.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_240_deg_in_q3() {
-        GetAngleTest::expect(240.0)
-            .in_quadrant(Q3)
-            .move_x(-1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_270_deg_in_q3() {
-        GetAngleTest::expect(270.0)
-            .in_quadrant(Q3)
-            .move_x(0.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_300_deg_in_q3() {
-        GetAngleTest::expect(300.0)
-            .in_quadrant(Q3)
-            .move_x(1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_315_deg_in_q3() {
-        GetAngleTest::expect(315.0)
-            .in_quadrant(Q3)
-            .move_x(1.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    // ---------------------------------- //
-    // TESTING AT Q4 (BTM-RIGHT QUADRANT) //
-    // ---------------------------------- //
-
-    #[test]
-    fn test_0_deg_in_q4() {
-        GetAngleTest::expect(0.0)
-            .in_quadrant(Q4)
-            .move_x(1.0)
-            .move_y(0.0)
-            .run();
-    }
-
-    #[test]
-    fn test_45_deg_in_q4() {
-        GetAngleTest::expect(45.0)
-            .in_quadrant(Q4)
-            .move_x(1.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_60_deg_in_q4() {
-        GetAngleTest::expect(60.0)
-            .in_quadrant(Q4)
-            .move_x(1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_90_deg_in_q4() {
-        GetAngleTest::expect(90.0)
-            .in_quadrant(Q4)
-            .move_x(0.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_120_deg_in_q4() {
-        GetAngleTest::expect(120.0)
-            .in_quadrant(Q4)
-            .move_x(-1.0)
-            .move_y(-f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_135_deg_in_q4() {
-        GetAngleTest::expect(135.0)
-            .in_quadrant(Q4)
-            .move_x(-1.0)
-            .move_y(-1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_180_deg_in_q4() {
-        GetAngleTest::expect(180.0)
-            .in_quadrant(Q4)
-            .move_x(-1.0)
-            .move_y(0.0)
-            .run();
-    }
-
-    #[test]
-    fn test_225_deg_in_q4() {
-        GetAngleTest::expect(225.0)
-            .in_quadrant(Q4)
-            .move_x(-1.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_240_deg_in_q4() {
-        GetAngleTest::expect(240.0)
-            .in_quadrant(Q4)
-            .move_x(-1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_270_deg_in_q4() {
-        GetAngleTest::expect(270.0)
-            .in_quadrant(Q4)
-            .move_x(0.0)
-            .move_y(1.0)
-            .run();
-    }
-
-    #[test]
-    fn test_300_deg_in_q4() {
-        GetAngleTest::expect(300.0)
-            .in_quadrant(Q4)
-            .move_x(1.0)
-            .move_y(f32::sqrt(3.0))
-            .run();
-    }
-
-    #[test]
-    fn test_315_deg_in_q4() {
-        GetAngleTest::expect(315.0)
-            .in_quadrant(Q4)
-            .move_x(1.0)
-            .move_y(1.0)
-            .run();
+    fn test_315_deg() {
+        for start in [ORIGIN, Q1, Q2, Q3, Q4] {
+            GetAngleTest::expect(315.0)
+                .from(start)
+                .move_x(1.0)
+                .move_y(1.0)
+                .run();
+        }
     }
 }
 
