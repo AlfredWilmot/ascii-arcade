@@ -28,20 +28,20 @@ mod tests_angle {
             }
         }
 
-        /// specify a new starting point for the angle line.
+        /// specify a new starting point for the line.
         fn from(mut self, coord: (f32, f32)) -> Self {
             self.origin = coord;
             self.coordinate = coord;
             self
         }
 
-        /// specify x-displacement of line forming angle.
+        /// specify x-displacement of the line endpoint, forming an angle with horizontal.
         fn move_x(mut self, x: f32) -> Self {
             self.coordinate.0 += x;
             self
         }
 
-        /// specify y-displacement.
+        /// specify y-displacement of line endpoint, forming an angle with horizontal.
         fn move_y(mut self, y: f32) -> Self {
             self.coordinate.1 += y;
             self
