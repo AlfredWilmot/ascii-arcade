@@ -16,6 +16,8 @@ The TUI showcases the engine through various ascii arcade games.
 To run the application, execute the following command in your favorite terminal:
 
 ```bash
+# NOTE: this builds (then executes) a debug binary
+# which compiles quicker than a release build (cargo run --release)
 cargo run
 ```
 
