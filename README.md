@@ -1,12 +1,12 @@
 # AsciiArcade
 
-This is a simple 2D physics engine. \
-A TUI (_Terminal User Interface_) frontend application is used to showcase
-various arcade games based that are built using this physics engine.
+This is a simple 2D physics engine incorporating a TUI (_Terminal User Interface_) frontend.
+The TUI showcases the physics engine through various ascii arcade games.
 
 > [!WARNING]
 > 🚧 **WORK IN PROGRESS** 🚧
-> The following dependencies are used:
+>
+> Development requires the following dependencies (non-exhaustive):
 > ```text
 > rustup 1.28.1 (2025-03-05)
 > cargo 1.85.1 (d73d2caf9 2024-12-31)
@@ -39,3 +39,10 @@ exit (q)
 move player (wasd)
 spawn collision entity (LMB)
 spawn static entity (RMB)
+```
+
+### Utils
+Additional utilities are provided with this repo to aid development.
+
+- `./check.sh`: run CI pipeline (formatters/linters/unit-tests)
+- `./dbg.sh`: a facile debugging utility that can be hooked into a running process (uses gdb)
