@@ -1,7 +1,7 @@
 # AsciiArcade
 
-This is a simple 2D physics engine incorporating a TUI (_Terminal User Interface_) frontend.
-The TUI showcases the physics engine through various ascii arcade games.
+This is a simple 2D physics engine incorporating a TUI (_Terminal User Interface_) frontend. \
+The TUI showcases the engine through various ascii arcade games.
 
 > [!WARNING]
 > 🚧 **WORK IN PROGRESS** 🚧
