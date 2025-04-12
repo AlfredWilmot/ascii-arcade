@@ -1,21 +1,50 @@
 # AsciiArcade
 
+This is a simple 2D physics engine incorporating a TUI (_Terminal User Interface_) frontend. \
+The TUI showcases the engine through various ascii arcade games.
+
 > [!WARNING]
-> 🚧 Work In Progress 🚧
+> 🚧 **WORK IN PROGRESS** 🚧
+>
+> Development requires the following dependencies (non-exhaustive):
+> ```text
+> rustup 1.28.1 (2025-03-05)
+> cargo 1.85.1 (d73d2caf9 2024-12-31)
+> rustc 1.85.1 (4eb161250 2025-03-15)
+> ```
 
-<img src="./examples/gifs/menu.gif" alt="linear collision" style="width:400px;height:250px;">
+To run the application, execute the following command in your favorite terminal:
 
-`cargo run`
+```bash
+# NOTE: this builds (then executes) a debug binary
+# which compiles quicker than a release build (cargo run --release)
+cargo run
+```
 
-## Games
+![main-menu](./examples/pics/menu.jpeg)
 
-`Sandbox`
+### Games
+
+This section overviews all games that are currently implemented. \
+These commands can be run at any time:
+
+```
+return to menu (ESC)
+exit (q)
+```
+
+#### Sandbox
 
 <img src="./examples/gifs/sandbox_game.gif" alt="linear collision" style="width:400px;height:250px;">
 
-`move player (wasd), spawn entity (LMB), exit (q)`
+```text
+move player (wasd)
+spawn collision entity (LMB)
+spawn static entity (RMB)
+```
 
-### References
-- [Ericson, Christer. Real-time collision detection. Crc Press, 2004.](https://www.sciencedirect.com/book/9781558607323/real-time-collision-detection)
-    - [Ch5 - Basic Primitive Tests](https://www.sciencedirect.com/science/article/abs/pii/B9781558607323500103)
-- [ANSI Escape Sequences](https://gist.github.com/fnky/458719343aabd01cfb17a3a4f7296797)
+### Utils
+Additional utilities are provided with this repo to aid development.
+
+- `./check.sh`: run CI pipeline (formatters/linters/unit-tests)
+- `./dbg.sh`: a facile debugging utility that can be hooked into a running process (uses gdb)
