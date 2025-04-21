@@ -101,4 +101,28 @@ mod tests {
             .add_box(Aabb::new(5.0, 5.0, 15.0, 15.0))
             .run();
     }
+    #[test]
+    fn test_no_intersect_top_right() {
+        IntersectTest::expect(false)
+            .add_box(Aabb::new(20.1, 20.1, 25.0, 25.0))
+            .run();
+    }
+    #[test]
+    fn test_no_intersect_btm_right() {
+        IntersectTest::expect(false)
+            .add_box(Aabb::new(15.0, 5.0, 20.1, 9.9))
+            .run();
+    }
+    #[test]
+    fn test_no_intersect_top_left() {
+        IntersectTest::expect(false)
+            .add_box(Aabb::new(5.0, 20.1, 9.9, 25.0))
+            .run();
+    }
+    #[test]
+    fn test_no_intersect_btm_left() {
+        IntersectTest::expect(false)
+            .add_box(Aabb::new(5.0, 5.0, 9.9, 9.9))
+            .run();
+    }
 }
