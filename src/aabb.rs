@@ -2,6 +2,8 @@
 //!
 //! A bounding-volume used as part of a collision broad-phase:
 //! i.e. to determine which objects _might_ be colliding.
+//! References:
+//! - [aabb](https://www.toptal.com/game/video-game-physics-part-ii-collision-detection-for-solid-objects)
 
 use crate::entity::vector::EuclidianVector;
 
