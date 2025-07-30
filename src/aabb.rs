@@ -4,6 +4,8 @@
 //! i.e. to determine which objects _might_ be colliding.
 //! References:
 //! - [aabb](https://www.toptal.com/game/video-game-physics-part-ii-collision-detection-for-solid-objects)
+//! - [n-body problem](https://youtu.be/nZHjD3cI-EU?si=J8bfy26JqUlDtFlb)
+//! - [building collision sims](https://youtu.be/eED4bSkYCB8?si=c0KU_eGInsBPARS2)
 
 use crate::entity::vector::EuclidianVector;
 
