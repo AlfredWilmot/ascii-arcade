@@ -110,7 +110,7 @@ fn game_selection(frame: &mut Frame, selected_game: Game) {
         if game == selected_game {
             let selected_text = Paragraph::new(Line::default().spans(vec![
                 "[↵]".light_green().bold(),
-                format!(" {:?}", game).black(),
+                format!(" {game:?}").black(),
             ]))
             .block(
                 Block::new()
@@ -124,7 +124,7 @@ fn game_selection(frame: &mut Frame, selected_game: Game) {
 
         // render unselected games
         } else {
-            let text = Paragraph::new(Line::from(format!("  {:?}", game)).left_aligned()).block(
+            let text = Paragraph::new(Line::from(format!("  {game:?}")).left_aligned()).block(
                 Block::new()
                     .borders(Borders::ALL)
                     .border_type(BorderType::Rounded)

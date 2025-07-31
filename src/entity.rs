@@ -182,12 +182,12 @@ impl fmt::Display for Entity {
             EntityType::Player => match &self.state {
                 EntityState::Alive => write!(f, "\x1b[42m▀\x1b[0m"),
                 EntityState::Dead => write!(f, "\x1b[43m▀\x1b[0m"),
-                EntityState::Hidden => write!(f, "{}", BACKGROUND),
+                EntityState::Hidden => write!(f, "{BACKGROUND}"),
             },
             EntityType::Npc => match &self.state {
                 EntityState::Alive => write!(f, "\x1b[41m▀\x1b[0m"),
                 EntityState::Dead => write!(f, "\x1b[43m▀\x1b[0m"),
-                EntityState::Hidden => write!(f, "{}", BACKGROUND),
+                EntityState::Hidden => write!(f, "{BACKGROUND}"),
             },
             EntityType::Static => write!(f, "\x1b[47m \x1b[0m"),
         }
@@ -203,7 +203,7 @@ pub struct RigidBody {
 impl fmt::Display for RigidBody {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for entity in self.parts.iter() {
-            write!(f, "{}", entity)?
+            write!(f, "{entity}")?
         }
         Ok(())
     }

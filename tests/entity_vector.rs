@@ -96,8 +96,8 @@ mod test_entity_vector {
         for data in make_test_data() {
             let a_to_b = EuclidianVector::from(data.points.0, data.points.1).unit();
             let b_to_a = EuclidianVector::from(data.points.1, data.points.0).unit();
-            println!("a_to_b: {:?}", a_to_b);
-            println!("b_to_a: {:?}", b_to_a);
+            println!("a_to_b: {a_to_b:?}");
+            println!("b_to_a: {b_to_a:?}");
 
             let a_vel_mod = EuclidianVector::new(
                 a_to_b.x.abs() * data.initial_vels.0.x,
@@ -107,8 +107,8 @@ mod test_entity_vector {
                 b_to_a.x.abs() * data.initial_vels.1.x,
                 b_to_a.y.abs() * data.initial_vels.1.y,
             );
-            println!("a_vel_mod: {:?}", a_vel_mod);
-            println!("b_vel_mod: {:?}", b_vel_mod);
+            println!("a_vel_mod: {a_vel_mod:?}");
+            println!("b_vel_mod: {b_vel_mod:?}");
 
             let new_a_vel = collision::collision_calc(&a_vel_mod, &1.0, &b_vel_mod, &1.0);
 
