@@ -3,5 +3,7 @@
 PKG="$(sed -n '/\[package\]/,/^$/{s/^name = "\(.*\)"$/\1/p}' Cargo.toml)"
 VER="$(sed -n '/\[package\]/,/^$/{s/^version = "\(.*\)"$/\1/p}' Cargo.toml)"
 
+# display final command, forward any args to docker
 set -x
-docker build -t "${PKG}:${VER}" --build-arg PROJECT="${PKG}" "${@}" .
+./build.sh --target dev
+docker run --rm -it -v "$(pwd):/home/build" "${@}" "${PKG}:${VER}"
