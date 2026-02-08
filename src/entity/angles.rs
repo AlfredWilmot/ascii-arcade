@@ -119,7 +119,7 @@ pub fn map_angle(angle: f32, segment_count: usize) -> f32 {
     let mut counter: usize = 1;
     while current_step < 360.0 {
         if (current_step..(current_step + step)).contains(&deg) {
-            if counter % 2 == 0 {
+            if counter.is_multiple_of(2) {
                 if current_step + step == 360.0 {
                     return 0.0;
                 }
