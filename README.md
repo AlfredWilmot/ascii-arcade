@@ -1,6 +1,6 @@
 # AsciiArcade
 
-This is a simple 2D physics engine incorporating a TUI (_Terminal User Interface_) frontend. \
+This is a simple 2D collision engine incorporating a TUI (_Terminal User Interface_) frontend. \
 The TUI showcases the engine through various ascii arcade games.
 
 > [!WARNING]
