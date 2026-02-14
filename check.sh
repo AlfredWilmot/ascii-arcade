@@ -15,7 +15,7 @@ cargo fmt --all
 
 # run linter
 _header "Running linters"
-cargo clippy --all-targets --all-features --workspace -- -D warnings
+cargo clippy --fix --all-targets --all-features --workspace -- -D warnings
 
 # run all unit-tests
 _header "Running unit-tests"
