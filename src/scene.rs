@@ -55,10 +55,18 @@ pub fn debug_print<T: Debug>(text: T, offset: u16) {
 //  (+y)
 //
 pub fn term_coords(pos: (f32, f32)) -> (u16, u16) {
-    let (x, y) = pos;
-    let x = if x.round() <= 0.0 { 1.0 } else { x };
-    let y = if y.round() <= 0.0 { 1.0 } else { y };
-    (x.round() as u16, y.round() as u16)
+    (
+        if pos.0.round() <= 1.0 {
+            1_u16
+        } else {
+            pos.0.round() as u16
+        },
+        if pos.1.round() <= 1.0 {
+            1_u16
+        } else {
+            pos.1.round() as u16
+        },
+    )
 }
 
 /// display all the entities in the scene
