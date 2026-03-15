@@ -16,16 +16,14 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: RUST_BACKTRACE=full cargo test --all
-    - name: Formatting checks
-      run: cargo fmt --all --check
     - name: Linting checks
-      run: cargo clippy --all-targets --all-features --workspace -- -D warnings
+      run: make lint
+    - name: Run tests
+      run: RUST_BACKTRACE=full make test
     - name: Documentation checks
-      run: cargo doc --no-deps --document-private-items --all-features --workspace --examples
+      run: make docs
+    - name: Build
+      run: make build
 
 # REFERENCES:
 # > https://github.com/rust-github/template/blob/main/template/.github/workflows/ci.yml

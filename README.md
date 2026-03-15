@@ -17,8 +17,8 @@ To run the application, execute the following command in your favorite terminal:
 
 ```bash
 # NOTE: this builds (then executes) a debug binary
-# which compiles quicker than a release build (cargo run --release)
-cargo run
+# which compiles quicker than a release build (make release)
+make
 ```
 
 ![main-menu](./examples/pics/menu.jpeg)
